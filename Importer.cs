@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.SourceSafe.Interop;
 using SharpSvn;
 using System.IO;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using SourceSafeTypeLib;
+using vsslib;
 
 namespace VssSvnConverter
 {

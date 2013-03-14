@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>VssSvnConverter</RootNamespace>
     <AssemblyName>VssSvnConverter</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -37,11 +37,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.SourceSafe.Interop, Version=5.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-      <Private>True</Private>
-      <HintPath>$(SolutionDir)\packages\Microsoft.VisualStudio.SourceSafe.Interop.5.2.0.0\lib\Microsoft.VisualStudio.SourceSafe.Interop.dll</HintPath>
-    </Reference>
     <Reference Include="SharpSvn, Version=1.7005.2199.13657, Culture=neutral, PublicKeyToken=d729672594885a28, processorArchitecture=x86">
       <HintPath>$(SolutionDir)\packages\SharpSvn.1.7-x86.1.7005.2199\lib\net20\SharpSvn.dll</HintPath>
     </Reference>
@@ -55,7 +50,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CacheBuilder.cs" />
-    <Compile Include="FileCache.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="VssVersionsBuilder.cs" />
     <Compile Include="WcBuilder.cs" />
@@ -67,10 +61,29 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="VssSvnConverter.conf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\vsslib\vsslib.csproj">
+      <Project>{935EC6E9-0796-49A7-8CB9-593304158027}</Project>
+      <Name>vsslib</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="SourceSafeTypeLib">
+      <Guid>{783CD4E0-9D54-11CF-B8EE-00608CC9A71F}</Guid>
+      <VersionMajor>5</VersionMajor>
+      <VersionMinor>2</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />

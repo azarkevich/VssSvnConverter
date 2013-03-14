@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.SourceSafe.Interop;
 using System.IO;
 using System.Diagnostics;
+using SourceSafeTypeLib;
+using vsslib;
 
 namespace VssSvnConverter
 {
