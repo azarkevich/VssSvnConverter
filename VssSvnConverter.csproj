@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CacheBuilder.cs" />
+    <Compile Include="LinksBuilder.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="VssVersionsBuilder.cs" />
     <Compile Include="WcBuilder.cs" />
@@ -69,6 +70,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\vcslib\vcslib.csproj">
+      <Project>{E9A1BC40-E02C-41FD-BA1A-6526167109D8}</Project>
+      <Name>vcslib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\vsslib\vsslib.csproj">
       <Project>{935EC6E9-0796-49A7-8CB9-593304158027}</Project>
       <Name>vsslib</Name>

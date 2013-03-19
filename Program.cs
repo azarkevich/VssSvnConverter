@@ -90,6 +90,11 @@ namespace VssSvnConverter
 					Console.WriteLine("Next: build-cache");
 					break;
 
+				case "build-links":
+					new LinksBuilder().Build(opts, new ImportListBuilder().Load());
+					Console.WriteLine("Next: build-cache");
+					break;
+
 				case "build-cache":
 					new CacheBuilder().Build(opts, new VssVersionsBuilder().Load());
 					Console.WriteLine("Next: build-commits");
@@ -122,6 +127,7 @@ where
 		all - perform all stages. With 5 second timeout between.
 		build-list - build list of files for import: '1-import-list.txt'. After building, it can be edited by hand to remove *.exe for example
 		build-versions - build list of all versions of selected files. See '2-versions-list.txt'
+		build-links - build list of linked files. See '2a-links-list.txt'
 		build-cache - get all required versions to local cache. See '2b-cached-versions-list.txt'
 		build-commits - build list of commits: 3-commits-list.txt. Also, can be edited by hand for edit user names, for examle. DateTime in ticks, UTC.
 		build-wc - Checkout specified URL.
