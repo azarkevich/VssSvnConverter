@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Diagnostics;
+using System.Security.Cryptography;
 using SourceSafeTypeLib;
+using vcslib;
 using vsslib;
 
 namespace VssSvnConverter
@@ -11,7 +13,7 @@ namespace VssSvnConverter
 	class CacheBuilder
 	{
 		IVSSDatabase _db;
-		FileCache _cache;
+		VssFileCache _cache;
 		StreamWriter _log;
 		StreamWriter _versionsList;
 		readonly Stopwatch _stopwatch = new Stopwatch();
@@ -20,22 +22,31 @@ namespace VssSvnConverter
 
 		// file spec -> message which should be added to comment
 		readonly Dictionary<string, List<string>> _absentRevisions = new Dictionary<string, List<string>>();
+
+		readonly Options _options;
+
+		public CacheBuilder(Options opts)
+		{
+			_options = opts;
+		}
 		
 		public List<FileRevision> Load()
 		{
 			return new VssVersionsBuilder().Load("2b-cached-versions-list.txt");
 		}
 
-		public void Build(Options opts, List<FileRevision> versions)
+		public void Build(List<FileRevision> versions)
 		{
-			_db = opts.DB;
+			_db = _options.DB;
 
 			versions = versions.OrderBy(v => v.FileSpec).ToList();
 
-			using(_cache = new FileCache(_db.SrcSafeIni, opts.CacheDir))
+			using(_cache = new VssFileCache(_options.CacheDir, _db.SrcSafeIni))
 			using(_log = File.CreateText("2b-cache.txt.log"))
 			using(_versionsList = File.CreateText("2b-cached-versions-list.txt"))
 			{
+				_log.AutoFlush = true;
+
 				_stopwatch.Start();
 
 				for(var i=0;i<versions.Count;i++)
@@ -55,18 +66,18 @@ namespace VssSvnConverter
 
 		void Process(FileRevision file, int pos, int count)
 		{
-			if (_cache.GetFilePath(file.FileSpec, file.VssVersion) != null)
+			if (!_options.Force && _cache.GetFilePath(file.FileSpec, file.VssVersion) != null)
 			{
 				Console.Write("c");
 				_log.WriteLine("Already in cache: {0}@{1}", file.FileSpec, file.VssVersion);
 			}
-			else if (_cache.GetFileError(file.FileSpec, file.VssVersion) == "singleton")
+			else if (!_options.Force && _cache.GetFileError(file.FileSpec, file.VssVersion) == "singleton")
 			{
 				Console.Write("e");
 				_log.WriteLine("Already in cache (singleton): {0}@{1}", file.FileSpec, file.VssVersion);
 				return;
 			}
-			else if (_cache.GetFileError(file.FileSpec, file.VssVersion) == "broken-revision")
+			else if (!_options.Force && _cache.GetFileError(file.FileSpec, file.VssVersion) == "broken-revision")
 			{
 				Console.Write("e");
 				_log.WriteLine("Already in cache (broken version): {0}@{1}", file.FileSpec, file.VssVersion);
@@ -178,6 +189,8 @@ namespace VssSvnConverter
 			absent.Add(string.Format("{0}@{1}", file.FileSpec, file.VssVersion));
 		}
 
+		readonly SHA1Managed _hashAlgo = new SHA1Managed();
+
 		void GetFromVss(VSSItem vssItem, FileRevision file)
 		{
 			// move to correct veriosn
@@ -188,10 +201,26 @@ namespace VssSvnConverter
 
 			var path = Path.Combine(Path.Combine(Environment.CurrentDirectory, "vss-temp"), Path.GetFileName(relPath));
 
-			vssItem.Get(path);
+			vssItem.Get(path, (int)(VSSFlags.VSSFLAG_FORCEDIRNO | VSSFlags.VSSFLAG_USERRONO | VSSFlags.VSSFLAG_REPREPLACE));
 
-			File.SetAttributes(path, FileAttributes.Normal);
+			// in force mode check if file already in cache and coincidence by hash
+			if(_options.Force)
+			{
+				var ce = _cache.GetFileInfo(file.FileSpec, file.VssVersion);
+				if(ce != null)
+				{
+					string hash;
 
+					using(var s = new FileStream(path, FileMode.Open, FileAccess.Read))
+						hash = Convert.ToBase64String(_hashAlgo.ComputeHash(s));
+
+					if(hash != ce.Sha1Hash)
+					{
+						_log.WriteLine("!!! Cache contains different content for: " + file.FileSpec);
+						_log.WriteLine("{0} != {1}", hash, ce.Sha1Hash);
+					}
+				}
+			}
 			_cache.AddFile(file.FileSpec, file.VssVersion, path, false);
 		}
 	}

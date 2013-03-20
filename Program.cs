@@ -96,12 +96,12 @@ namespace VssSvnConverter
 					break;
 
 				case "build-cache":
-					new CacheBuilder().Build(opts, new VssVersionsBuilder().Load());
+					new CacheBuilder(opts).Build(new VssVersionsBuilder().Load());
 					Console.WriteLine("Next: build-commits");
 					break;
 
 				case "build-commits":
-					new CommitsBuilder().Build(opts, new CacheBuilder().Load());
+					new CommitsBuilder().Build(opts, new CacheBuilder(opts).Load());
 					Console.WriteLine("Next: build-wc");
 					break;
 

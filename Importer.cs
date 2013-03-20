@@ -7,6 +7,7 @@ using System.IO;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using SourceSafeTypeLib;
+using vcslib;
 using vsslib;
 
 namespace VssSvnConverter
@@ -15,7 +16,7 @@ namespace VssSvnConverter
 	{
 		IVSSDatabase _db;
 		Uri _svnUri;
-		FileCache _cache;
+		VssFileCache _cache;
 
 		public void Import(Options opts, List<Commit> commits)
 		{
@@ -27,7 +28,7 @@ namespace VssSvnConverter
 			if(File.Exists("4-import.txt"))
 				fromCommit = File.ReadAllLines("4-import.txt").Select(Int32.Parse).DefaultIfEmpty(0).Last();
 
-			using(_cache = new FileCache(_db.SrcSafeIni, opts.CacheDir))
+			using(_cache = new VssFileCache(opts.CacheDir, _db.SrcSafeIni))
 			using(var log = File.CreateText("4-import.txt.log"))
 			{
 				try
@@ -35,7 +36,8 @@ namespace VssSvnConverter
 					using (var svn = new SvnClient())
 					{
 						Collection<SvnStatusEventArgs> statuses;
-						svn.GetStatus("svn-wc", out statuses);
+						if(!svn.GetStatus("svn-wc", out statuses))
+							throw new ApplicationException("SvnClient.GetStatus returns false");
 
 						if (statuses.Count > 0)
 							throw new ApplicationException("SVN working copy (svn-wc) has files/directories in non-normal state. Make reverts/remove unversioned files and try again with stage import");
@@ -43,7 +45,7 @@ namespace VssSvnConverter
 						for (var i = fromCommit; i < commits.Count; i++)
 						{
 							var c = commits[i];
-							Console.WriteLine("[{3:D5}/{4:D5}] Start import commit: {0}, by {1}, Comment: {2}", c.At, c.User, string.Join("; ", c.Comments.ToArray()), i, commits.Count);
+							Console.WriteLine("[{2,6}/{3}] Start import commit: {0}, by {1}", c.At, c.User, i, commits.Count);
 
 							var cr = LoadRevision(svn, c, log);
 

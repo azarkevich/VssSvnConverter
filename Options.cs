@@ -12,7 +12,9 @@ namespace VssSvnConverter
 		// stage
 		public string Stage;
 
-		public IVSSDatabase DB;
+		public bool Force;
+
+		public VSSDatabase DB;
 
 		// import
 		public Func<string, bool> IncludePredicate;
@@ -42,6 +44,8 @@ namespace VssSvnConverter
 				.DefaultIfEmpty("all")
 				.First()
 			;
+
+			Force = args.Any(a => a == "--force");
 		}
 
 		public void ReadConfig(string conf)
