@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using SharpSvn;
 using System.IO;
 using System.Collections.ObjectModel;
@@ -79,6 +80,10 @@ namespace VssSvnConverter
 			}
 			Console.WriteLine("Import complete.");
 		}
+		[DllImport("Kernel32.dll", CharSet = CharSet.Unicode )]
+		static extern bool CreateHardLink(string lpFileName, string lpExistingFileName,IntPtr lpSecurityAttributes);
+
+		bool _useHardLink = true;
 
 		SvnCommitResult LoadRevision(SvnClient svn, Commit commit, StreamWriter log)
 		{
@@ -94,6 +99,8 @@ namespace VssSvnConverter
 
 				var relPath = file.FileSpec.TrimStart('$', '/', '\\');
 
+				log.WriteLine("Load: {0} -> {1}", file, relPath);
+
 				var dstPath = Path.Combine(Path.Combine(Environment.CurrentDirectory, "svn-wc"), relPath);
 
 				var dstDir = Path.GetDirectoryName(dstPath);
@@ -103,7 +110,23 @@ namespace VssSvnConverter
 
 				var addToSvn = !File.Exists(dstPath);
 
-				File.Copy(filePath, dstPath, true);
+				if(File.Exists(dstPath))
+				{
+					File.Delete(dstPath);
+					log.WriteLine("Deleted: {0}", dstPath);
+				}
+
+				if(_useHardLink)
+				{
+					_useHardLink = CreateHardLink(dstPath, filePath, IntPtr.Zero);
+					log.WriteLine("CreateHl: {0} -> {1} result: {2}", filePath, dstPath, _useHardLink);
+				}
+
+				if(!_useHardLink)
+				{
+					File.Copy(filePath, dstPath, true);
+					log.WriteLine("Copy: {0} -> {1}", filePath, dstPath);
+				}
 
 				if(addToSvn)
 					svn.Add(dstPath);

@@ -9,6 +9,7 @@ namespace VssSvnConverter
 	{
 		public void Build(Options opts, List<string> files)
 		{
+			var xrefsCo = new XRefMap();
 			var xrefs = new XRefMap();
 			foreach (var file in files)
 			{
@@ -23,11 +24,17 @@ namespace VssSvnConverter
 
 					if(itemSpec != linkSpec)
 						xrefs.AddRef(itemSpec, linkSpec);
+
+					foreach (IVSSCheckout vssCheckout in vssItem.Checkouts)
+					{
+						xrefsCo.AddRef(itemSpec, vssCheckout.Username + " at " + vssCheckout.Date);
+					}
 				}
 			}
 
 			xrefs.Save("2a-links-list.txt");
 			xrefs.Save("2a-links-list-ui.txt", true);
+			xrefsCo.Save("2a-checkouts-list-ui.txt", true);
 		}
 
 		string NormPath(string path)
