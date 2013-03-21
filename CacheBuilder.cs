@@ -5,7 +5,6 @@ using System.IO;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using SourceSafeTypeLib;
-using vcslib;
 using vsslib;
 
 namespace VssSvnConverter
@@ -218,7 +217,9 @@ namespace VssSvnConverter
 					{
 						_log.WriteLine("!!! Cache contains different content for: " + file.FileSpec);
 						_log.WriteLine("{0} != {1}", hash, ce.Sha1Hash);
+						_cache.AddFile(file.FileSpec, file.VssVersion, path, false);
 					}
+					return;
 				}
 			}
 			_cache.AddFile(file.FileSpec, file.VssVersion, path, false);
