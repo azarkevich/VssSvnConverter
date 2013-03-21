@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
+﻿using System.IO;
 using SharpSvn;
 
 namespace VssSvnConverter
@@ -11,7 +7,7 @@ namespace VssSvnConverter
 	{
 		public void Build(Options opts)
 		{
-			File.WriteAllText("4-import.txt", "0\n");
+			File.WriteAllText(Importer.DataFileName, "0\n");
 
 			if(Directory.Exists("svn-wc"))
 			{

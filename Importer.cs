@@ -14,6 +14,9 @@ namespace VssSvnConverter
 {
 	class Importer
 	{
+		public const string DataFileName = "6-import.txt";
+		public const string LogFileName = "log-6-import.log";
+
 		IVSSDatabase _db;
 		Uri _svnUri;
 		VssFileCache _cache;
@@ -25,11 +28,11 @@ namespace VssSvnConverter
 
 			var fromCommit = 0;
 
-			if(File.Exists("4-import.txt"))
-				fromCommit = File.ReadAllLines("4-import.txt").Select(Int32.Parse).DefaultIfEmpty(0).Last();
+			if(File.Exists(DataFileName))
+				fromCommit = File.ReadAllLines(DataFileName).Select(Int32.Parse).DefaultIfEmpty(0).Last();
 
 			using(_cache = new VssFileCache(opts.CacheDir, _db.SrcSafeIni))
-			using(var log = File.CreateText("4-import.txt.log"))
+			using(var log = File.CreateText(LogFileName))
 			{
 				try
 				{
@@ -49,7 +52,7 @@ namespace VssSvnConverter
 
 							var cr = LoadRevision(svn, c, log);
 
-							File.AppendAllText("4-import.txt", i + "\n");
+							File.AppendAllText(DataFileName, i + "\n");
 
 							if (cr == null)
 							{
@@ -94,6 +97,7 @@ namespace VssSvnConverter
 				var filePath = _cache.GetFilePath(file.FileSpec, file.VssVersion);
 				if(filePath == null)
 				{
+					Debugger.Break();
 					log.WriteLine("File {0}@{1} absent in cache. Rerun 'VssSvnConverter build-cache'", file.FileSpec, file.VssVersion);
 					Console.Error.WriteLine("File {0}@{1} absent in cache. Rerun 'VssSvnConverter build-cache'", file.FileSpec, file.VssVersion);
 					Environment.Exit(1);

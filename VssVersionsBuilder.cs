@@ -20,9 +20,12 @@ namespace VssSvnConverter
 
 	class VssVersionsBuilder
 	{
+		const string DataFileName = "2-versions-list.txt";
+		const string LogFileName = "log-2-versions-list.log";
+
 		readonly Regex _versionRx = new Regex(@"^Ver:(?<ver>[0-9]+)\tSpec:(?<spec>[^\t]+)\tUser:(?<user>[^\t]+)\tAt:(?<at>[0-9]+)\tDT:(?<dt>[^\t]+)\tComment:(?<comment>.*)$");
 
-		public List<FileRevision> Load(string file = "2-versions-list.txt")
+		public List<FileRevision> Load(string file = DataFileName)
 		{
 			var list = new List<FileRevision>();
 			using(var r = File.OpenText(file))
@@ -61,9 +64,6 @@ namespace VssSvnConverter
 
 		public void Build(Options opts, List<string> files)
 		{
-			if(File.Exists("2-versions-list.txt"))
-				File.Delete("2-versions-list.txt");
-
 			var lockHandle = new object();
 
 			var threadIndex = 0;
@@ -71,8 +71,8 @@ namespace VssSvnConverter
 			var stopWatch = new Stopwatch();
 			stopWatch.Start();
 
-			using(var wr = File.CreateText("2-versions-list.txt"))
-			using(var log = File.CreateText("2-versions-list.txt.log"))
+			using(var wr = File.CreateText(DataFileName))
+			using(var log = File.CreateText(LogFileName))
 			{
 				Split(files, 5)
 					.Select(slice => BuildListAsync(opts, threadIndex++, slice, log, r => {

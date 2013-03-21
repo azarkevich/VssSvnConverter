@@ -9,76 +9,73 @@ namespace VssSvnConverter
 	{
 		static Int32 Main(string[] args)
 		{
+			var opts = new Options(args);
+
 			try{
 				if(args.Length == 0 || args.Any(a => a.StartsWith("/help")) || args.Any(a => a.StartsWith("-h")) || args.Any(a => a.StartsWith("--help")))
 				{
 					ShowHelp();
 					return -1;
 				}
+
+				var verbs = args
+					.Where(a => !a.StartsWith("-"))
+					.Select(a => a.ToLowerInvariant())
+					.SelectMany(a => {
+						if(a== "all")
+							return new[] { "build-list", "build-versions", "build-links", "build-cache", "build-commits", "build-wc", "import" };
+
+						return Enumerable.Repeat(a, 1);
+					})
+					.ToList()
+				;
 			
-				var opts = new Options(args);
-				if(string.IsNullOrEmpty(opts.Stage))
+				if(verbs.Count == 0)
 				{
 					ShowHelp();
 					return -1;
 				}
 
+				var unkVerb = verbs.FirstOrDefault(v => v != "build-list" && v != "build-versions" && v != "build-links" && v != "build-cache" && v != "build-commits" && v != "build-wc" && v != "import");
+				if(unkVerb != null)
+				{
+					ShowHelp(unkVerb);
+					return -1;
+				}
+
 				opts.ReadConfig(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "VssSvnConverter.conf"));
 
-				if(opts.Stage.ToLower() == "all")
-				{
-					ProcessStage(opts, "build-list");
-					Console.WriteLine("Press any key for start next stage");
-					Wait(5);
-
-					ProcessStage(opts, "build-versions");
-					Console.WriteLine("Press any key for start next stage");
-					Wait(5);
-
-					ProcessStage(opts, "build-cache");
-					Console.WriteLine("Press any key for start next stage");
-					Wait(5);
-
-					ProcessStage(opts, "build-commits");
-					Console.WriteLine("Press any key for start next stage");
-					Wait(5);
-
-					ProcessStage(opts, "build-wc");
-					Console.WriteLine("Press any key for start next stage");
-					Wait(5);
-
-					ProcessStage(opts, "import");
-				}
-				else
-				{
-					ProcessStage(opts, opts.Stage);
-				}
+				verbs.ForEach(v => ProcessStage(opts, v));
 			}
 			catch(ApplicationException ex)
 			{
 				Console.Error.WriteLine(ex.Message);
+				if(opts.Ask)
+				{
+					Console.WriteLine("Press any key...");
+					Console.ReadKey();
+				}
 				return 1;
 			}
 			catch(Exception ex)
 			{
 				Console.Error.WriteLine(ex.ToString());
+				if(opts.Ask)
+				{
+					Console.WriteLine("Press any key...");
+					Console.ReadKey();
+				}
 				return 1;
 			}
-
-			Console.WriteLine("Press any key...");
-			Console.ReadKey();
 
 			return 0;
 		}
 
-		static void Wait(int seconds)
+		private static void ProcessStage(Options opts, string verb)
 		{
-			Console.WriteLine("Press ctr+c for abort... Will be continued after {0} seconds", seconds);
-		}
+			Console.WriteLine("*** Stage: " + verb + " ***");
 
-		private static void ProcessStage(Options opts, string stage)
-		{
-			switch (stage)
+			switch (verb)
 			{
 				case "build-list":
 					new ImportListBuilder().Build(opts);
@@ -115,23 +112,34 @@ namespace VssSvnConverter
 					break;
 
 				default:
-					throw new ApplicationException("Unknown stage: " + opts.Stage);
+					throw new ApplicationException("Unknown stage: " + verb);
+			}
+
+			Console.WriteLine("");
+
+			if(opts.Ask)
+			{
+				Console.WriteLine("Press any key...");
+				Console.ReadKey();
 			}
 		}
 
-		private static void ShowHelp()
+		private static void ShowHelp(string unkVerb = null)
 		{
+			if(unkVerb != null)
+				Console.WriteLine("Unknown verb: {0}\n", unkVerb);
+
 			Console.WriteLine(@"Usage: VssSvnConvert stage [options]
 where
 	stage - conversion stage:
 		all - perform all stages. With 5 second timeout between.
-		build-list - build list of files for import: '1-import-list.txt'. After building, it can be edited by hand to remove *.exe for example
-		build-versions - build list of all versions of selected files. See '2-versions-list.txt'
-		build-links - build list of linked files. See '2a-links-list.txt'
-		build-cache - get all required versions to local cache. See '2b-cached-versions-list.txt'
-		build-commits - build list of commits: 3-commits-list.txt. Also, can be edited by hand for edit user names, for examle. DateTime in ticks, UTC.
+		build-list - build list of files for import. After building, it can be edited by hand to remove *.exe for example
+		build-versions - build list of all versions of selected files
+		build-links - build list of linked files
+		build-cache - get all required versions to local cache
+		build-commits - build list of commits:. Also, can be edited by hand for edit user names, for examle. DateTime in ticks, UTC.
 		build-wc - Checkout specified URL.
-		import - import commits to SVN working copy. Used file 4-import.txt to track last commited commit.
+		import - import commits to SVN working copy
 
 	each stage suppose, that previous stage results was already build and available.
 

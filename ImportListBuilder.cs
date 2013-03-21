@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using SourceSafeTypeLib;
 
@@ -9,15 +8,15 @@ namespace VssSvnConverter
 {
 	class ImportListBuilder
 	{
+		const string DataFileName = "1-import-list.txt";
+		const string LogFileName = "log-1-import-list.log";
+
 		public void Build(Options opts)
 		{
-			if(File.Exists("1-import-list.txt"))
-				File.Delete("1-import-list.txt");
-
 			_files = new List<string>();
 			_isInclude = opts.IncludePredicate;
 
-			using(_log = File.CreateText("1-import-list.txt.log"))
+			using(_log = File.CreateText(LogFileName))
 			{
 				foreach (var root in opts.VssRoots)
 				{
@@ -28,7 +27,7 @@ namespace VssSvnConverter
 					WalkItem(rootItem);
 				}
 
-				File.WriteAllLines("1-import-list.txt", _files.ToArray());
+				File.WriteAllLines(DataFileName, _files.ToArray());
 			}
 
 			// build extensions map
@@ -44,12 +43,12 @@ namespace VssSvnConverter
 			Console.WriteLine();
 			Console.WriteLine();
 
-			Console.WriteLine("Building import files compete. Check: 1-import-list.txt");
+			Console.WriteLine("Building import files compete. Check: " + DataFileName);
 		}
 
 		public List<string> Load()
 		{
-			return File.ReadAllLines("1-import-list.txt").ToList();
+			return File.ReadAllLines(DataFileName).ToList();
 		}
 
 		List<string> _files;

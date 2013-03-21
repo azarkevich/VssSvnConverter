@@ -7,6 +7,10 @@ namespace VssSvnConverter
 {
 	class LinksBuilder
 	{
+		const string DataFileName = "3-state-links.txt";
+		const string DataFileUiName = "3-state-links-ui.txt";
+		const string DataFileCoName = "3-state-checkouts.txt";
+
 		public void Build(Options opts, List<string> files)
 		{
 			var xrefsCo = new XRefMap();
@@ -32,9 +36,9 @@ namespace VssSvnConverter
 				}
 			}
 
-			xrefs.Save("2a-links-list.txt");
-			xrefs.Save("2a-links-list-ui.txt", true);
-			xrefsCo.Save("2a-checkouts-list-ui.txt", true);
+			xrefs.Save(DataFileName);
+			xrefs.Save(DataFileUiName, true);
+			xrefsCo.Save(DataFileCoName, true);
 		}
 
 		string NormPath(string path)

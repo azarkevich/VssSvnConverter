@@ -119,6 +119,8 @@ namespace VssSvnConverter
 
 	class CommitsBuilder
 	{
+		const string DataFileName = "5-commits-list.txt";
+
 		Options _opts;
 
 		public List<Commit> Load()
@@ -126,7 +128,7 @@ namespace VssSvnConverter
 			Commit commit = null;
 			var commits = new List<Commit>();
 			var commitRx = new Regex(@"^Commit:(?<at>[0-9]+)\s+User:(?<user>[^\s]+)\s+Comment:(?<comment>.*)$");
-			using(var r = File.OpenText("3-commits-list.txt"))
+			using(var r = File.OpenText(DataFileName))
 			{
 				string line;
 				while((line = r.ReadLine())!=null)
@@ -165,9 +167,6 @@ namespace VssSvnConverter
 		{
 			_opts = opts;
 
-			if(File.Exists("3-commits-list.txt"))
-				File.Delete("3-commits-list.txt");
-
 			var orderedRevisions = versions
 				.OrderBy(r => r.At)
 				.ThenBy(r => r.VssVersion)
@@ -176,7 +175,7 @@ namespace VssSvnConverter
 			var commits = SliceToCommits(orderedRevisions).ToList();
 
 			// save
-			using(var wr = File.CreateText("3-commits-list.txt"))
+			using(var wr = File.CreateText(DataFileName))
 			{
 				foreach (var c in commits)
 				{

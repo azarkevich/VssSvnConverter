@@ -9,10 +9,8 @@ namespace VssSvnConverter
 {
 	class Options
 	{
-		// stage
-		public string Stage;
-
 		public bool Force;
+		public bool Ask;
 
 		public VSSDatabase DB;
 
@@ -39,13 +37,8 @@ namespace VssSvnConverter
 
 		public Options(IEnumerable<string> args)
 		{
-			Stage = args
-				.Where(a => !a.StartsWith("--"))
-				.DefaultIfEmpty("all")
-				.First()
-			;
-
 			Force = args.Any(a => a == "--force");
+			Ask = args.Any(a => a == "--ask");
 		}
 
 		public void ReadConfig(string conf)
