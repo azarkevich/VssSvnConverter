@@ -35,6 +35,9 @@ namespace VssSvnConverter
 		public Uri SvnRepoUri;
 		public string SvnRepo;
 
+		// directories, which will be created as revision 1, before first import
+		public string[] PreCreateDirs;
+
 		public Options(IEnumerable<string> args)
 		{
 			Force = args.Any(a => a == "--force");
@@ -97,6 +100,8 @@ namespace VssSvnConverter
 
 			SvnRepo = Path.Combine(Environment.CurrentDirectory, "_repository");
 			SvnRepoUri = new Uri("file:///" + SvnRepo.Replace('\\', '/'));
+
+			PreCreateDirs = confLookup["pre-create-dir"].ToArray();
 
 			// open VSS DB
 			var ssIni = confLookup["source-safe-ini"].DefaultIfEmpty("srcsafe.ini").First();

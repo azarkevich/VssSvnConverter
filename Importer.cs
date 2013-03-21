@@ -7,7 +7,6 @@ using System.IO;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using SourceSafeTypeLib;
-using vcslib;
 using vsslib;
 
 namespace VssSvnConverter

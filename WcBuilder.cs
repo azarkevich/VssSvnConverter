@@ -29,6 +29,24 @@ namespace VssSvnConverter
 			using (var svn = new SvnClient())
 			{
 				svn.CheckOut(new SvnUriTarget(opts.SvnRepoUri), "svn-wc");
+
+				foreach (var dir in opts.PreCreateDirs)
+				{
+					var wcDir = Path.Combine("svn-wc", dir);
+
+					if(!Directory.Exists(wcDir))
+						Directory.CreateDirectory(wcDir);
+				}
+
+				foreach (var fse in Directory.EnumerateFileSystemEntries("svn-wc"))
+				{
+					if(Path.GetFileName(fse).ToLowerInvariant() == ".svn")
+						continue;
+
+					svn.Add(fse, SvnDepth.Infinity);
+				}
+
+				svn.Commit("svn-wc", new SvnCommitArgs { LogMessage = "PreCreate revision"});
 			}
 		}
 	}
