@@ -9,7 +9,7 @@ namespace VssSvnConverter
 	class ImportListBuilder
 	{
 		const string DataFileName = "1-import-list.txt";
-		const string LogFileName = "log-1-import-list.log";
+		const string LogFileName = "log-1-import-list.txt";
 
 		public void Build(Options opts)
 		{

@@ -12,7 +12,7 @@ namespace VssSvnConverter
 	class CacheBuilder
 	{
 		const string DataFileName = "4-cached-versions-list.txt";
-		const string LogFileName = "log-4-cached-versions-list.log";
+		const string LogFileName = "log-4-cached-versions-list.txt";
 
 		IVSSDatabase _db;
 		VssFileCache _cache;

@@ -14,7 +14,7 @@ namespace VssSvnConverter
 	class Importer
 	{
 		public const string DataFileName = "6-import.txt";
-		public const string LogFileName = "log-6-import.log";
+		public const string LogFileName = "log-6-import.txt";
 
 		IVSSDatabase _db;
 		Uri _svnUri;
