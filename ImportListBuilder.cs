@@ -9,6 +9,7 @@ namespace VssSvnConverter
 	class ImportListBuilder
 	{
 		const string DataFileName = "1-import-list.txt";
+		const string DataExtsFileName = "1-import-list-exts.txt";
 		const string LogFileName = "log-1-import-list.txt";
 
 		public void Build(Options opts)
@@ -35,13 +36,30 @@ namespace VssSvnConverter
 			_files
 				.Select(Path.GetExtension)
 				.Select(e => e.ToLowerInvariant())
-				.OrderBy(e => e)
 				.GroupBy(e => e)
 				.ToList()
 				.ForEach(g => Console.Write("{0}({1}) ", g.Key, g.Count()))
 			;
 			Console.WriteLine();
 			Console.WriteLine();
+
+			// dump extensions map
+			using (var map = File.CreateText(DataExtsFileName))
+			{
+				_files
+					.GroupBy(f => (Path.GetExtension(f) ?? "").ToLowerInvariant())
+					.ToList()
+					.ForEach(g => { 
+						map.WriteLine("{0}({1}):", g.Key, g.Count());
+
+						foreach(var f in g)
+						{
+							map.WriteLine("	{0}", f);
+						}
+					})
+				;
+			}
+
 
 			Console.WriteLine("Building import files compete. Check: " + DataFileName);
 		}

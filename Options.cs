@@ -22,6 +22,10 @@ namespace VssSvnConverter
 		// cache
 		public string CacheDir;
 
+		public readonly HashSet<string> LatestOnly = new HashSet<string>();
+
+		public Regex[] LatestOnlyRx;
+
 		// build commits
 		public TimeSpan SilentSpan;
 
@@ -67,6 +71,13 @@ namespace VssSvnConverter
 
 			// cache 
 			CacheDir = confLookup["cache-dir"].DefaultIfEmpty(".cache").First();
+
+			foreach (var v in confLookup["latest-only"])
+			{
+				LatestOnly.Add(v.ToLowerInvariant().Replace('\\', '/'));
+			}
+
+			LatestOnlyRx = confLookup["latest-only-rx"].Select(rx => new Regex(rx, RegexOptions.IgnoreCase)).ToArray();
 
 			// commit setup
 

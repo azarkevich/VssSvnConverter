@@ -36,6 +36,7 @@ namespace VssSvnConverter
 		{
 			_db = _options.DB;
 
+			// order - from recent (high versions) to ancient (version 1)
 			versions = versions.OrderBy(f => f.FileSpec).ThenBy(f => -f.VssVersion).ToList();
 
 			using(_cache = new VssFileCache(_options.CacheDir, _db.SrcSafeIni))
@@ -53,6 +54,8 @@ namespace VssSvnConverter
 					}
 
 					// build cached versions list
+					_pinned.Clear();
+
 					using(var sw = File.CreateText(DataFileName))
 					{
 						foreach (var fileGroup in versions.GroupBy(v => v.FileSpec))
@@ -66,6 +69,9 @@ namespace VssSvnConverter
 
 							foreach (var file in fileVersions)
 							{
+								if(!IsShouldBeProcessed(file))
+									continue;
+
 								var inf = _cache.GetFileInfo(file.FileSpec, file.VssVersion);
 
 								if(inf == null)
@@ -137,6 +143,9 @@ namespace VssSvnConverter
 
 		void Process(FileRevision file, int pos, int count)
 		{
+			if(!IsShouldBeProcessed(file))
+				return;
+
 			var alreadyInCache = false;
 			if(_cache.GetFilePath(file.FileSpec, file.VssVersion) != null)
 			{
@@ -144,17 +153,11 @@ namespace VssSvnConverter
 				Console.Write("c");
 				_log.WriteLine("Already in cache: {0}@{1}", file.FileSpec, file.VssVersion);
 			}
-			else if(_cache.GetFileError(file.FileSpec, file.VssVersion) == "not-retained")
+			else if(!string.IsNullOrWhiteSpace(_cache.GetFileError(file.FileSpec, file.VssVersion)))
 			{
 				alreadyInCache = true;
 				Console.Write("e");
-				_log.WriteLine("Already in cache (singleton): {0}@{1}", file.FileSpec, file.VssVersion);
-			}
-			else if(_cache.GetFileError(file.FileSpec, file.VssVersion) == "broken-revision")
-			{
-				alreadyInCache = true;
-				Console.Write("e");
-				_log.WriteLine("Already in cache (broken version): {0}@{1}", file.FileSpec, file.VssVersion);
+				_log.WriteLine("Already in cache (error): {0}@{1}", file.FileSpec, file.VssVersion);
 			}
 
 			if(alreadyInCache && !_options.Force)
@@ -164,6 +167,31 @@ namespace VssSvnConverter
 
 			_log.WriteLine("Get: {0}@{1}", file.FileSpec, file.VssVersion);
 			Console.WriteLine("[{2}/{3}] Get: {0}@{1}", file.FileSpec, file.VssVersion, pos, count);
+		}
+		
+		// when file request to being 'latest only' - its path added to this set and do not processed further
+		readonly HashSet<string> _pinned = new HashSet<string>();
+
+		bool IsShouldBeProcessed(FileRevision file)
+		{
+			var key = file.FileSpec.ToLowerInvariant().Replace('\\', '/');
+
+			// skip file if requested only latest version, and it was already produced
+			if(_pinned.Contains(key))
+				return false;
+
+			if(IsShouldBePinned(key))
+			{
+				_pinned.Add(key);
+				_log.WriteLine("Pinned: {0}", key);
+			}
+
+			return true;
+		}
+
+		bool IsShouldBePinned(string key)
+		{
+			return _options.LatestOnly.Contains(key) || _options.LatestOnlyRx.Any(rx => rx.IsMatch(key));
 		}
 
 		void GetFromVss(FileRevision file)
