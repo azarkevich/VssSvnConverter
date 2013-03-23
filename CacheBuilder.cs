@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.IO;
 using System.Diagnostics;
@@ -61,6 +62,7 @@ namespace VssSvnConverter
 
 							var brokenVersions = new List<int>();
 							var notRetainedVersions = new List<int>();
+							var otherErrors = new Dictionary<int, string>();
 
 							foreach (var file in fileVersions)
 							{
@@ -71,16 +73,24 @@ namespace VssSvnConverter
 
 								if(inf.ContentPath != null)
 								{
-									if(brokenVersions.Count > 0 || notRetainedVersions.Count > 0)
+									if(brokenVersions.Count > 0 || notRetainedVersions.Count > 0 || otherErrors.Count > 0)
 									{
 										var commentPlus = string.Format("\nBalme for '{0}' can be incorrect, because:", file.FileSpec);
 										if(brokenVersions.Count > 0)
 										{
-											commentPlus += "\n\tbroken vss versions: " + string.Join(", ", brokenVersions.Select(v => v.ToString()).ToArray());
+											commentPlus += "\n\tbroken vss versions: " + string.Join(", ", brokenVersions.Select(v => v.ToString(CultureInfo.InvariantCulture)).ToArray());
 										}
 										if(notRetainedVersions.Count > 0)
 										{
-											commentPlus += "\n\tnot retained versions: " + string.Join(", ", notRetainedVersions.Select(v => v.ToString()).ToArray());
+											commentPlus += "\n\tnot retained versions: " + string.Join(", ", notRetainedVersions.Select(v => v.ToString(CultureInfo.InvariantCulture)).ToArray());
+										}
+										if(otherErrors.Count > 0)
+										{
+											foreach (var otherErrorsGroup in otherErrors.GroupBy(kvp => kvp.Value))
+											{
+												var revs = otherErrorsGroup.Select(kvp => kvp.Key.ToString()).ToArray();
+												commentPlus += string.Format("\n\tError in VSS versions {0}: '{1}'", string.Join(", ", revs), otherErrorsGroup.Key);
+											}
 										}
 
 										file.Comment += commentPlus;
@@ -97,6 +107,7 @@ namespace VssSvnConverter
 
 									notRetainedVersions.Clear();
 									brokenVersions.Clear();
+									otherErrors.Clear();
 								}
 								else if(inf.Notes == "not-retained")
 								{
@@ -106,9 +117,13 @@ namespace VssSvnConverter
 								{
 									brokenVersions.Add(file.VssVersion);
 								}
+								else if(!string.IsNullOrWhiteSpace(inf.Notes))
+								{
+									otherErrors[file.VssVersion] = inf.Notes;
+								}
 							}
 
-							if(brokenVersions.Count > 0 || notRetainedVersions.Count > 0)
+							if(brokenVersions.Count > 0 || notRetainedVersions.Count > 0 || otherErrors.Count > 0)
 								throw new ApplicationException(string.Format("Absent content for latest file version: {0}", fileGroup.Key));
 						}
 					}
@@ -165,7 +180,7 @@ namespace VssSvnConverter
 
 				var path = Path.Combine(Path.Combine(Environment.CurrentDirectory, "vss-temp"), DateTimeOffset.UtcNow.Ticks + "-" + dstFileName);
 
-				vssItem.Get(path, (int)(VSSFlags.VSSFLAG_FORCEDIRNO | VSSFlags.VSSFLAG_USERRONO | VSSFlags.VSSFLAG_REPREPLACE));
+				vssItem.Get(path, (int)VSSFlags.VSSFLAG_FORCEDIRNO | (int)VSSFlags.VSSFLAG_USERRONO | (int)VSSFlags.VSSFLAG_REPREPLACE);
 
 				// in force mode check if file already in cache and coincidence by hash
 				if(_options.Force)
@@ -211,17 +226,21 @@ namespace VssSvnConverter
 					return;
 				}
 
-				CriticalError(file, ex);
+				_cache.AddError(file.FileSpec, file.VssVersion, ex.Message);
+
+				UnrecognizedError(file, ex);
 			}
 		}
 
-		void CriticalError(FileRevision file, Exception ex = null)
+		void UnrecognizedError(FileRevision file, Exception ex = null)
 		{
-			_log.WriteLine("CRITICAL ERROR: {0}", file.FileSpec);
-			_log.WriteLine(ex.ToString());
-			Console.Error.WriteLine("\n!!! Unrecoverable error.\n{0}@{1}\n ERROR: {2}", file.FileSpec, file.VssVersion, ex.Message);
-
-			Environment.Exit(1);
+			_log.WriteLine("UNRECOGNIZED ERROR: {0}", file.FileSpec);
+			Console.Error.WriteLine("\n!!! Unrecognized error. See logs.\n{0}@{1}", file.FileSpec, file.VssVersion);
+			if(ex != null)
+			{
+				_log.WriteLine(ex.ToString());
+				Console.Error.WriteLine(" ERROR: {0}", ex.Message);
+			}
 		}
 
 		readonly SHA1Managed _hashAlgo = new SHA1Managed();
