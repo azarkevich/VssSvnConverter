@@ -7,9 +7,9 @@ namespace VssSvnConverter
 {
 	class LinksBuilder
 	{
-		const string DataFileName = "3-state-links.txt";
-		const string DataFileUiName = "3-state-links-ui.txt";
-		const string DataFileCoName = "3-state-checkouts.txt";
+		public const string DataFileName = "3-state-links.txt";
+		public const string DataFileUiName = "3-state-links-ui.txt";
+		public const string DataFileCoName = "3-state-checkouts.txt";
 
 		public void Build(Options opts, List<string> files)
 		{

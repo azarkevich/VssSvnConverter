@@ -9,6 +9,8 @@ namespace VssSvnConverter
 {
 	class Options
 	{
+		public ILookup<string, string> Config;
+
 		public bool Force;
 		public bool Ask;
 
@@ -50,7 +52,7 @@ namespace VssSvnConverter
 
 		public void ReadConfig(string conf)
 		{
-			var confLookup = File.ReadAllLines(conf)
+			Config = File.ReadAllLines(conf)
 				.Where(l => !string.IsNullOrEmpty(l))
 				.Select(l => l.Trim())
 				.Where(l => !l.StartsWith("#"))
@@ -67,22 +69,22 @@ namespace VssSvnConverter
 				.ToLookup(p => p.Key, p => p.Value)
 			;
 
-			VssRoots = confLookup["import-root"].ToArray();
+			VssRoots = Config["import-root"].ToArray();
 
 			// cache 
-			CacheDir = confLookup["cache-dir"].DefaultIfEmpty(".cache").First();
+			CacheDir = Config["cache-dir"].DefaultIfEmpty(".cache").First();
 
-			foreach (var v in confLookup["latest-only"])
+			foreach (var v in Config["latest-only"])
 			{
 				LatestOnly.Add(v.ToLowerInvariant().Replace('\\', '/'));
 			}
 
-			LatestOnlyRx = confLookup["latest-only-rx"].Select(rx => new Regex(rx, RegexOptions.IgnoreCase)).ToArray();
+			LatestOnlyRx = Config["latest-only-rx"].Select(rx => new Regex(rx, RegexOptions.IgnoreCase)).ToArray();
 
 			// commit setup
 
 			// silent period
-			SilentSpan = confLookup["commit-silent-period"]
+			SilentSpan = Config["commit-silent-period"]
 				.DefaultIfEmpty("120")
 				.Select(Double.Parse)
 				.Select(TimeSpan.FromMinutes)
@@ -90,20 +92,20 @@ namespace VssSvnConverter
 			;
 
 			// overlapping
-			OverlapCommits = confLookup["overlapped-commits"]
+			OverlapCommits = Config["overlapped-commits"]
 				.DefaultIfEmpty("false")
 				.Select(bool.Parse)
 				.First()
 			;
 
 			// merge changes
-			MergeChanges = confLookup["merge-changes"]
+			MergeChanges = Config["merge-changes"]
 				.DefaultIfEmpty("false")
 				.Select(bool.Parse)
 				.First()
 			;
 
-			UserMappings = confLookup["user-mapping"]
+			UserMappings = Config["user-mapping"]
 				.Select(m => m.Split(':'))
 				.Where(a => a.Length == 2)
 				.ToDictionary(a => a[0].ToLowerInvariant(), a => a[1])
@@ -112,17 +114,17 @@ namespace VssSvnConverter
 			SvnRepo = Path.Combine(Environment.CurrentDirectory, "_repository");
 			SvnRepoUri = new Uri("file:///" + SvnRepo.Replace('\\', '/'));
 
-			PreCreateDirs = confLookup["pre-create-dir"].ToArray();
+			PreCreateDirs = Config["pre-create-dir"].ToArray();
 
 			// open VSS DB
-			var ssIni = confLookup["source-safe-ini"].DefaultIfEmpty("srcsafe.ini").First();
-			var ssUser = confLookup["source-safe-user"].DefaultIfEmpty("").First();
-			var ssPwd = confLookup["source-safe-password"].DefaultIfEmpty("").First();
+			var ssIni = Config["source-safe-ini"].DefaultIfEmpty("srcsafe.ini").First();
+			var ssUser = Config["source-safe-user"].DefaultIfEmpty("").First();
+			var ssPwd = Config["source-safe-password"].DefaultIfEmpty("").First();
 			DB = new VSSDatabase();
 			DB.Open(ssIni, ssUser, ssPwd);
 
 			// include/exclude checks
-			var checks = confLookup["import-pattern"]
+			var checks = Config["import-pattern"]
 				.Select(pat => new { Rx = new Regex(pat.Substring(1), RegexOptions.IgnoreCase), Exclude = pat.StartsWith("-") })
 				.ToArray()
 			;

@@ -23,7 +23,7 @@ namespace VssSvnConverter
 					.Select(a => a.ToLowerInvariant())
 					.SelectMany(a => {
 						if(a== "all")
-							return new[] { "build-list", "build-versions", "build-links", "build-cache", "build-commits", "build-wc", "import" };
+							return new[] { "build-list", "build-versions", "build-links", "build-cache", "build-commits", "build-wc", "import", "build-scripts" };
 
 						return Enumerable.Repeat(a, 1);
 					})
@@ -36,7 +36,7 @@ namespace VssSvnConverter
 					return -1;
 				}
 
-				var unkVerb = verbs.FirstOrDefault(v => v != "build-list" && v != "build-versions" && v != "build-links" && v != "build-cache" && v != "build-commits" && v != "build-wc" && v != "import");
+				var unkVerb = verbs.FirstOrDefault(v => v != "build-list" && v != "build-versions" && v != "build-links" && v != "build-cache" && v != "build-commits" && v != "build-wc" && v != "import" && v != "build-scripts");
 				if(unkVerb != null)
 				{
 					ShowHelp(unkVerb);
@@ -111,6 +111,10 @@ namespace VssSvnConverter
 					new Importer().Import(opts, new CommitsBuilder().Load());
 					break;
 
+				case "build-scripts":
+					new ScriptsBuilder().Build(opts);
+					break;
+
 				default:
 					throw new ApplicationException("Unknown stage: " + verb);
 			}
@@ -140,6 +144,7 @@ where
 		build-commits - build list of commits:. Also, can be edited by hand for edit user names, for examle. DateTime in ticks, UTC.
 		build-wc - Checkout specified URL.
 		import - import commits to SVN working copy
+		build-scripts - generate some useful scripts
 
 	each stage suppose, that previous stage results was already build and available.
 

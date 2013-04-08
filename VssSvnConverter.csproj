@@ -52,6 +52,7 @@
     <Compile Include="CacheBuilder.cs" />
     <Compile Include="LinksBuilder.cs" />
     <Compile Include="Options.cs" />
+    <Compile Include="ScriptsBuilder.cs" />
     <Compile Include="VssVersionsBuilder.cs" />
     <Compile Include="WcBuilder.cs" />
     <Compile Include="CommitsBuilder.cs" />
