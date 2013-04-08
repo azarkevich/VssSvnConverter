@@ -20,18 +20,15 @@ namespace VssSvnConverter
 				Console.WriteLine(file);
 
 				var item = opts.DB.VSSItem[file];
-				var itemSpec = NormPath(item.Spec);
 
-				foreach (IVSSItem vssItem in item.Links)
+				foreach (IVSSItem vssLink in item.Links)
 				{
-					var linkSpec = NormPath(vssItem.Spec);
+					if(item.Spec != vssLink.Spec)
+						xrefs.AddRef(item.Spec, vssLink.Spec);
 
-					if(itemSpec != linkSpec)
-						xrefs.AddRef(itemSpec, linkSpec);
-
-					foreach (IVSSCheckout vssCheckout in vssItem.Checkouts)
+					foreach (IVSSCheckout vssCheckout in vssLink.Checkouts)
 					{
-						xrefsCo.AddRef(itemSpec, vssCheckout.Username + " at " + vssCheckout.Date);
+						xrefsCo.AddRef(item.Spec, vssCheckout.Username + " at " + vssCheckout.Date);
 					}
 				}
 			}
@@ -39,11 +36,6 @@ namespace VssSvnConverter
 			xrefs.Save(DataFileName);
 			xrefs.Save(DataFileUiName, true);
 			xrefsCo.Save(DataFileCoName, true);
-		}
-
-		string NormPath(string path)
-		{
-			return path.Replace('\\', '/').ToLowerInvariant();
 		}
 	}
 }

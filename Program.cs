@@ -112,7 +112,7 @@ namespace VssSvnConverter
 					break;
 
 				case "build-scripts":
-					new ScriptsBuilder().Build(opts);
+					new ScriptsBuilder().Build(opts, new ImportListBuilder().Load(), new ImportListBuilder().LoadRootTypes());
 					break;
 
 				default:

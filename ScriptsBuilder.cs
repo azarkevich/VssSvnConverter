@@ -9,7 +9,7 @@ namespace VssSvnConverter
 {
 	class ScriptsBuilder
 	{
-		public void Build(Options opts)
+		public void Build(Options opts, List<string> importSpecs, Dictionary<string, bool> roots)
 		{
 			if(!Directory.Exists("scripts"))
 				Directory.CreateDirectory("scripts");
@@ -22,14 +22,17 @@ namespace VssSvnConverter
 				swRmVss.WriteLine("set SSDIR={0}", Path.GetDirectoryName(opts.DB.SrcSafeIni));
 				swRmVss.WriteLine("set SSUSER={0}", opts.Config["source-safe-user"].LastOrDefault() ?? "<TODO>");
 				swRmVss.WriteLine("set SSPWD={0}", opts.Config["source-safe-password"].LastOrDefault() ?? "<TODO>");
+				swRmVss.WriteLine();
 
 				// remove vss projects, local files
-				foreach (var root in opts.VssRoots)
+				foreach (var kvp in roots)
 				{
-					swRmVss.WriteLine("ss.exe DELETE \"{0}\"", root);
+					swRmVss.WriteLine("ss.exe DELETE \"{0}\"", kvp.Key);
 
-					swRmLocal.WriteLine("rd /S /Q \"{0}\"", root.TrimStart("$/\\".ToCharArray()).Replace('/', '\\').TrimEnd('\\'));
-					swRmLocal.WriteLine("del /F \"{0}\"", root.TrimStart("$/\\".ToCharArray()).Replace('/', '\\'));
+					if(kvp.Value)
+						swRmLocal.WriteLine("rd /S /Q \"{0}\"", kvp.Key.TrimStart("$/\\".ToCharArray()).Replace('/', '\\').TrimEnd('\\'));
+					else
+						swRmLocal.WriteLine("del /F \"{0}\"", kvp.Key.TrimStart("$/\\".ToCharArray()).Replace('/', '\\'));
 				}
 			}
 
@@ -84,10 +87,12 @@ namespace VssSvnConverter
 					}
 
 					// buld list which should be added to db
-					var forAdd2Db = otherLinks.Where(l => !importedSet.Contains(l) && !add2DbSet.Contains(l)).ToList();
+					var forAdd2Db = otherLinks.Where(l => !importedSet.Contains(l) && !add2DbSet.Contains(l) && !file2Token.Map.ContainsKey(l)).ToList();
 
 					// mark imported file with token
-					sw.WriteLine("svn ps ihs:link-token \"{0}\" \"{1}\"", token, importedLink.Trim("$/\\".ToCharArray()));
+					var file = importedLink.Trim("$/\\".ToCharArray());
+					Console.WriteLine("ihs:link-token: {0}", file);
+					sw.WriteLine("svn ps ihs:link-token \"{0}\" \"{1}\"", token, file);
 
 					// add other links into DB
 					forAdd2Db.ForEach(l => {
@@ -96,6 +101,25 @@ namespace VssSvnConverter
 						token2Files.AddRef(token, l);
 						add2DbSet.Add(l);
 					});
+
+					Console.WriteLine();
+				}
+
+				// check all imported specs (except already handled) if they has token in db
+				foreach (var imported in importSpecs.Where(i => !importedSet.Contains(i)))
+				{
+					List<string> files;
+					if(!file2Token.Map.TryGetValue(imported, out files))
+						continue;
+
+					var token = files[0];
+
+					// mark imported file with token
+					var file = imported.Trim("$/\\".ToCharArray());
+
+					Console.WriteLine("Mark with ihs:link-token: {0}", file);
+
+					sw.WriteLine("svn ps ihs:link-token \"{0}\" \"{1}\"", token, file);
 				}
 
 				if(linksDb != null)

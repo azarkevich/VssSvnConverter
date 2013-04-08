@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using SourceSafeTypeLib;
+using vsslib;
 
 namespace VssSvnConverter
 {
 	class ImportListBuilder
 	{
 		const string DataFileName = "1-import-list.txt";
+		const string DataFileRootTypes = "1-roots.txt";
 		const string DataExtsFileName = "1-import-list-exts.txt";
 		const string LogFileName = "log-1-import-list.txt";
 
@@ -18,12 +20,18 @@ namespace VssSvnConverter
 			_isInclude = opts.IncludePredicate;
 
 			using(_log = File.CreateText(LogFileName))
+			using(var rootTypes = File.CreateText(DataFileRootTypes))
 			{
-				foreach (var root in opts.VssRoots)
+				_log.AutoFlush = true;
+				rootTypes.AutoFlush = true;
+
+				foreach (var root in opts.Config["import-root"])
 				{
 					Console.WriteLine("VSS Root: {0}", root);
 
-					var rootItem = opts.DB.VSSItem[root];
+					var rootItem = opts.DB.VSSItem[root].Normalize(opts.DB);
+
+					rootTypes.WriteLine("{0}	{1}", rootItem.Spec, rootItem.Type == 0 ? "d" : "f");
 
 					WalkItem(rootItem);
 				}
@@ -60,13 +68,22 @@ namespace VssSvnConverter
 				;
 			}
 
-
 			Console.WriteLine("Building import files compete. Check: " + DataFileName);
 		}
 
 		public List<string> Load()
 		{
 			return File.ReadAllLines(DataFileName).ToList();
+		}
+
+		// spec -> isdir
+		public Dictionary<string, bool> LoadRootTypes()
+		{
+			return File
+				.ReadAllLines(DataFileRootTypes)
+				.Select(l => l.Split('\t'))
+				.ToDictionary(ar => ar[0], ar => ar[1] == "d")
+			;
 		}
 
 		List<string> _files;

@@ -19,8 +19,6 @@ namespace VssSvnConverter
 		// import
 		public Func<string, bool> IncludePredicate;
 
-		public string[] VssRoots;
-
 		// cache
 		public string CacheDir;
 
@@ -68,8 +66,6 @@ namespace VssSvnConverter
 				})
 				.ToLookup(p => p.Key, p => p.Value)
 			;
-
-			VssRoots = Config["import-root"].ToArray();
 
 			// cache 
 			CacheDir = Config["cache-dir"].DefaultIfEmpty(".cache").First();
