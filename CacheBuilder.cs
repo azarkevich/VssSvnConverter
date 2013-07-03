@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using SourceSafeTypeLib;
 using vsslib;
+using System.Text.RegularExpressions;
 
 namespace VssSvnConverter
 {
@@ -94,7 +95,7 @@ namespace VssSvnConverter
 										{
 											foreach (var otherErrorsGroup in otherErrors.GroupBy(kvp => kvp.Value))
 											{
-												var revs = otherErrorsGroup.Select(kvp => kvp.Key.ToString()).ToArray();
+												var revs = otherErrorsGroup.Select(kvp => kvp.Key.ToString(CultureInfo.InvariantCulture)).ToArray();
 												commentPlus += string.Format("\n\tError in VSS versions {0}: '{1}'", string.Join(", ", revs), otherErrorsGroup.Key);
 											}
 										}
@@ -208,7 +209,49 @@ namespace VssSvnConverter
 
 				var path = Path.Combine(Path.Combine(Environment.CurrentDirectory, "vss-temp"), DateTimeOffset.UtcNow.Ticks + "-" + dstFileName);
 
-				vssItem.Get(path, (int)VSSFlags.VSSFLAG_FORCEDIRNO | (int)VSSFlags.VSSFLAG_USERRONO | (int)VSSFlags.VSSFLAG_REPREPLACE);
+				try
+				{
+					vssItem.Get(path, (int)VSSFlags.VSSFLAG_FORCEDIRNO | (int)VSSFlags.VSSFLAG_USERRONO | (int)VSSFlags.VSSFLAG_REPREPLACE);
+				}
+				catch(Exception ex)
+				{
+					// special case when physical file not correspond to 
+					var m = Regex.Match(ex.Message, "File ['\"](?<phys>[^'\"]+)['\"] not found");
+					if (!m.Success)
+						throw;
+
+					if (m.Groups["phys"].Value == vssItem.Physical)
+						throw;
+
+					Console.WriteLine("Physical file mismatch. Try found through all versions.");
+
+					// try found versions with same physical file name
+
+					var items = Enumerable.Repeat(_db.VSSItem[file.FileSpec], 1).Concat(vssItem.Versions.Cast<IVSSVersion>().Select(v => v.VSSItem));
+
+					var found = false;
+					foreach (var item in items)
+					{
+						if (item.Physical != vssItem.Physical || item.VersionNumber == vssItem.VersionNumber)
+							continue;
+
+						// try get
+						try
+						{
+							item.Get(path, (int)VSSFlags.VSSFLAG_FORCEDIRNO | (int)VSSFlags.VSSFLAG_USERRONO | (int)VSSFlags.VSSFLAG_REPREPLACE);
+							found = true;
+							Console.WriteLine("Can: {0}@{1}", item.Spec, item.VersionNumber);
+							break;
+						}
+						catch
+						{
+							Console.WriteLine("Can't get: {0}", item.VersionNumber);
+						}
+					}
+
+					if (!found)
+						throw;
+				}
 
 				// in force mode check if file already in cache and coincidence by hash
 				if(_options.Force)

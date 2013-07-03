@@ -16,6 +16,7 @@ namespace VssSvnConverter
 		public DateTime At;
 		public int VssVersion;
 		public string Comment;
+		public string Physical;
 	}
 
 	class VssVersionsBuilder
@@ -23,7 +24,7 @@ namespace VssSvnConverter
 		const string DataFileName = "2-raw-versions-list.txt";
 		const string LogFileName = "log-2-raw-versions-list.txt";
 
-		readonly Regex _versionRx = new Regex(@"^Ver:(?<ver>[0-9]+)\tSpec:(?<spec>[^\t]+)\tUser:(?<user>[^\t]+)\tAt:(?<at>[0-9]+)\tDT:(?<dt>[^\t]+)\tComment:(?<comment>.*)$");
+		readonly Regex _versionRx = new Regex(@"^Ver:(?<ver>[0-9]+)\tSpec:(?<spec>[^\t]+)\tPhys:(?<phys>[^\t]+)\tUser:(?<user>[^\t]+)\tAt:(?<at>[0-9]+)\tDT:(?<dt>[^\t]+)\tComment:(?<comment>.*)$");
 
 		public List<FileRevision> Load(string file = DataFileName)
 		{
@@ -43,6 +44,7 @@ namespace VssSvnConverter
 						User = m.Groups["user"].Value,
 						FileSpec = m.Groups["spec"].Value,
 						VssVersion = int.Parse(m.Groups["ver"].Value),
+						Physical = m.Groups["phys"].Value,
 						Comment = m.Groups["comment"].Value.Replace('\u0001', '\n')
 					};
 
@@ -80,8 +82,8 @@ namespace VssSvnConverter
 						{
 							foreach (var rev in r)
 							{
-								wr.WriteLine("Ver:{0}	Spec:{1}	User:{2}	At:{3}	DT:{4}	Comment:{5}",
-									rev.VssVersion, rev.FileSpec, rev.User, rev.At.Ticks, rev.At, rev.Comment.Replace("\r\n", "\n").Replace('\r', '\n').Replace('\n', '\u0001'));
+								wr.WriteLine("Ver:{0}	Spec:{1}	Phys:{2}	User:{3}	At:{4}	DT:{5}	Comment:{6}",
+									rev.VssVersion, rev.FileSpec, rev.Physical, rev.User, rev.At.Ticks, rev.At, rev.Comment.Replace("\r\n", "\n").Replace('\r', '\n').Replace('\n', '\u0001'));
 							}
 						}
 					}))
@@ -126,7 +128,7 @@ namespace VssSvnConverter
 							if(opts.UserMappings.TryGetValue(user, out u))
 								user = u;
 
-							revisions.Add(new FileRevision { FileSpec = item.Spec, At = ver.Date.ToUniversalTime(), Comment = ver.Comment, VssVersion = ver.VersionNumber, User = user });
+							revisions.Add(new FileRevision { FileSpec = item.Spec, At = ver.Date.ToUniversalTime(), Comment = ver.Comment, VssVersion = ver.VersionNumber, User = user, Physical = item.Physical });
 						}
 					}
 					catch(Exception ex)
