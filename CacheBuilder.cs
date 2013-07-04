@@ -37,9 +37,7 @@ namespace VssSvnConverter
 		{
 			_db = _options.DB;
 
-			// order - from recent (high versions) to ancient (version 1)
 			versions = versions.OrderBy(f => f.FileSpec).ThenBy(f => -f.VssVersion).ToList();
-
 			using(_cache = new VssFileCache(_options.CacheDir, _db.SrcSafeIni))
 			{
 				using(_log = File.CreateText(LogFileName))
@@ -48,9 +46,14 @@ namespace VssSvnConverter
 
 					_stopwatch.Start();
 
-					// cache
+					// perform caching
 					for(var i=0;i<versions.Count;i++)
+					// form groups of revisions by file
+
 					{
+						// order file revisons from recent (high versions) to ancient (version 1)
+
+							// cache certain version
 						Process(versions[i], i, versions.Count);
 					}
 
@@ -103,9 +106,10 @@ namespace VssSvnConverter
 										file.Comment += commentPlus;
 									}
 
-									sw.WriteLine("Ver:{0}	Spec:{1}	User:{2}	At:{3}	DT:{4}	Comment:{5}",
+									sw.WriteLine("Ver:{0}	Spec:{1}	Phys:{2}	User:{3}	At:{4}	DT:{5}	Comment:{6}",
 										file.VssVersion,
 										file.FileSpec,
+										file.Physical,
 										file.User,
 										file.At.Ticks,
 										file.At,
@@ -139,6 +143,7 @@ namespace VssSvnConverter
 
 			_stopwatch.Stop();
 
+			Console.WriteLine();
 			Console.WriteLine("Building cache complete. Take {0}", _stopwatch.Elapsed);
 		}
 
@@ -197,11 +202,12 @@ namespace VssSvnConverter
 
 		void GetFromVss(FileRevision file)
 		{
+
 			try
 			{
 				var vssItem = _db.VSSItem[file.FileSpec];
 
-				// move to correct veriosn
+				// move to correct versiosn
 				if (vssItem.VersionNumber != file.VssVersion)
 					vssItem = vssItem.Version[file.VssVersion];
 
@@ -209,49 +215,7 @@ namespace VssSvnConverter
 
 				var path = Path.Combine(Path.Combine(Environment.CurrentDirectory, "vss-temp"), DateTimeOffset.UtcNow.Ticks + "-" + dstFileName);
 
-				try
-				{
-					vssItem.Get(path, (int)VSSFlags.VSSFLAG_FORCEDIRNO | (int)VSSFlags.VSSFLAG_USERRONO | (int)VSSFlags.VSSFLAG_REPREPLACE);
-				}
-				catch(Exception ex)
-				{
-					// special case when physical file not correspond to 
-					var m = Regex.Match(ex.Message, "File ['\"](?<phys>[^'\"]+)['\"] not found");
-					if (!m.Success)
-						throw;
-
-					if (m.Groups["phys"].Value == vssItem.Physical)
-						throw;
-
-					Console.WriteLine("Physical file mismatch. Try found through all versions.");
-
-					// try found versions with same physical file name
-
-					var items = Enumerable.Repeat(_db.VSSItem[file.FileSpec], 1).Concat(vssItem.Versions.Cast<IVSSVersion>().Select(v => v.VSSItem));
-
-					var found = false;
-					foreach (var item in items)
-					{
-						if (item.Physical != vssItem.Physical || item.VersionNumber == vssItem.VersionNumber)
-							continue;
-
-						// try get
-						try
-						{
-							item.Get(path, (int)VSSFlags.VSSFLAG_FORCEDIRNO | (int)VSSFlags.VSSFLAG_USERRONO | (int)VSSFlags.VSSFLAG_REPREPLACE);
-							found = true;
-							Console.WriteLine("Can: {0}@{1}", item.Spec, item.VersionNumber);
-							break;
-						}
-						catch
-						{
-							Console.WriteLine("Can't get: {0}", item.VersionNumber);
-						}
-					}
-
-					if (!found)
-						throw;
-				}
+				vssItem.Get(path, (int)VSSFlags.VSSFLAG_FORCEDIRNO | (int)VSSFlags.VSSFLAG_USERRONO | (int)VSSFlags.VSSFLAG_REPREPLACE);
 
 				// in force mode check if file already in cache and coincidence by hash
 				if(_options.Force)
