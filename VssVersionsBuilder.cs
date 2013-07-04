@@ -76,7 +76,7 @@ namespace VssSvnConverter
 			using(var wr = File.CreateText(DataFileName))
 			using(var log = File.CreateText(LogFileName))
 			{
-				Split(files, 5)
+				Split(files, opts.VersionFetchThreads)
 					.Select(slice => BuildListAsync(opts, threadIndex++, slice, log, r => {
 						lock(lockHandle)
 						{
@@ -96,7 +96,7 @@ namespace VssSvnConverter
 			Console.WriteLine("Build files versions list complete. Take: {0}", stopWatch.Elapsed);
 		}
 
-		Thread BuildListAsync(Options opts, int index, List<string> files, StreamWriter log, Action<List<FileRevision>> result)
+		Thread BuildListAsync(Options opts, int index, ICollection<string> files, TextWriter log, Action<List<FileRevision>> result)
 		{
 			var t = new Thread(delegate(object state) {
 	
@@ -109,11 +109,11 @@ namespace VssSvnConverter
 					try{
 						IVSSItem item = db.VSSItem[spec];
 
-						Console.WriteLine("[{0}] [{1:D5}/{2:D5}] {3}", index, ++findex, files.Count, item.Spec);
+						Console.WriteLine("[{0}] [{1,5}/{2,5}] {3}", (char)('a' + index), ++findex, files.Count, item.Spec);
 
 						foreach (IVSSVersion ver in item.Versions)
 						{
-							if(ver.Action.StartsWith("Labeled ") || ver.Action.StartsWith("Branched "))
+							if(ver.Action.StartsWith("Labeled "))
 								continue;
 
 							if(!ver.Action.StartsWith("Checked in ") && !ver.Action.StartsWith("Created ") && !ver.Action.StartsWith("Archived ") && !ver.Action.StartsWith("Rollback to"))
@@ -128,7 +128,7 @@ namespace VssSvnConverter
 							if(opts.UserMappings.TryGetValue(user, out u))
 								user = u;
 
-							revisions.Add(new FileRevision { FileSpec = item.Spec, At = ver.Date.ToUniversalTime(), Comment = ver.Comment, VssVersion = ver.VersionNumber, User = user, Physical = item.Physical });
+							revisions.Add(new FileRevision { FileSpec = item.Spec, At = ver.Date.ToUniversalTime(), Comment = ver.Comment, VssVersion = ver.VersionNumber, User = user, Physical = ver.VSSItem.Physical });
 						}
 					}
 					catch(Exception ex)
