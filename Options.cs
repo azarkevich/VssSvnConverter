@@ -41,6 +41,8 @@ namespace VssSvnConverter
 
 		// directories, which will be created as revision 1, before first import
 		public string[] PreCreateDirs;
+		
+		public int VersionFetchThreads = 1;
 
 		public Options(IEnumerable<string> args)
 		{
@@ -66,6 +68,8 @@ namespace VssSvnConverter
 				})
 				.ToLookup(p => p.Key, p => p.Value)
 			;
+
+			VersionFetchThreads = Config["versions-fetch-threads"].DefaultIfEmpty("1").Select(Int32.Parse).First();
 
 			// cache 
 			CacheDir = Config["cache-dir"].DefaultIfEmpty(".cache").First();
