@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.IO;
 using SourceSafeTypeLib;
+using vsslib;
 
 namespace VssSvnConverter
 {
@@ -13,6 +14,10 @@ namespace VssSvnConverter
 
 		public bool Force;
 		public bool Ask;
+
+		public string SourceSafeIni;
+		public string SourceSafeUser;
+		public string SourceSafePassword;
 
 		public VSSDatabase DB;
 
@@ -44,7 +49,10 @@ namespace VssSvnConverter
 		
 		public int VersionFetchThreads = 1;
 
-		public Options(IEnumerable<string> args)
+		// if specified, ss.exe will be used for retrieve files with known problems
+		public string SSPath;
+
+		public Options(string[] args)
 		{
 			Force = args.Any(a => a == "--force");
 			Ask = args.Any(a => a == "--ask");
@@ -68,6 +76,8 @@ namespace VssSvnConverter
 				})
 				.ToLookup(p => p.Key, p => p.Value)
 			;
+
+			SSPath = Config["ss.exe"].FirstOrDefault();
 
 			VersionFetchThreads = Config["versions-fetch-threads"].DefaultIfEmpty("1").Select(Int32.Parse).First();
 
@@ -117,11 +127,13 @@ namespace VssSvnConverter
 			PreCreateDirs = Config["pre-create-dir"].ToArray();
 
 			// open VSS DB
-			var ssIni = Config["source-safe-ini"].DefaultIfEmpty("srcsafe.ini").First();
-			var ssUser = Config["source-safe-user"].DefaultIfEmpty("").First();
-			var ssPwd = Config["source-safe-password"].DefaultIfEmpty("").First();
+			SourceSafeIni = Config["source-safe-ini"].DefaultIfEmpty("srcsafe.ini").First();
+			SourceSafeUser = Config["source-safe-user"].DefaultIfEmpty("").First();
+			SourceSafePassword = Config["source-safe-password"].DefaultIfEmpty("").First();
 			DB = new VSSDatabase();
-			DB.Open(ssIni, ssUser, ssPwd);
+			DB.Open(SourceSafeIni, SourceSafeUser, SourceSafePassword);
+
+			SSExeHelper.SetupSS(SSPath, SourceSafeIni, SourceSafeUser, SourceSafePassword);
 
 			// include/exclude checks
 			var checks = Config["import-pattern"]

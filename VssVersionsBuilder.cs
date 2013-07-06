@@ -113,7 +113,7 @@ namespace VssSvnConverter
 
 						foreach (IVSSVersion ver in item.Versions)
 						{
-							if(ver.Action.StartsWith("Labeled "))
+							if (ver.Action.StartsWith("Labeled ") || ver.Action.StartsWith("Branched "))
 								continue;
 
 							if(!ver.Action.StartsWith("Checked in ") && !ver.Action.StartsWith("Created ") && !ver.Action.StartsWith("Archived ") && !ver.Action.StartsWith("Rollback to"))

@@ -37,7 +37,9 @@ namespace VssSvnConverter
 		{
 			_db = _options.DB;
 
+			// order - from recent (high versions) to ancient (version 1)
 			versions = versions.OrderBy(f => f.FileSpec).ThenBy(f => -f.VssVersion).ToList();
+
 			using(_cache = new VssFileCache(_options.CacheDir, _db.SrcSafeIni))
 			{
 				using(_log = File.CreateText(LogFileName))
@@ -46,14 +48,9 @@ namespace VssSvnConverter
 
 					_stopwatch.Start();
 
-					// perform caching
+					// cache
 					for(var i=0;i<versions.Count;i++)
-					// form groups of revisions by file
-
 					{
-						// order file revisons from recent (high versions) to ancient (version 1)
-
-							// cache certain version
 						Process(versions[i], i, versions.Count);
 					}
 
@@ -202,20 +199,45 @@ namespace VssSvnConverter
 
 		void GetFromVss(FileRevision file)
 		{
-
 			try
 			{
 				var vssItem = _db.VSSItem[file.FileSpec];
 
-				// move to correct versiosn
+				// move to correct veriosn
 				if (vssItem.VersionNumber != file.VssVersion)
 					vssItem = vssItem.Version[file.VssVersion];
 
 				var dstFileName = Path.GetFileName(file.FileSpec.TrimStart('$', '/', '\\'));
 
-				var path = Path.Combine(Path.Combine(Environment.CurrentDirectory, "vss-temp"), DateTimeOffset.UtcNow.Ticks + "-" + dstFileName);
+				var tempDir = Path.Combine(Environment.CurrentDirectory, "vss-temp");
+				var path = Path.Combine(tempDir, DateTimeOffset.UtcNow.Ticks + "-" + dstFileName);
 
-				vssItem.Get(path, (int)VSSFlags.VSSFLAG_FORCEDIRNO | (int)VSSFlags.VSSFLAG_USERRONO | (int)VSSFlags.VSSFLAG_REPREPLACE);
+				try
+				{
+					vssItem.Get(path, (int)VSSFlags.VSSFLAG_FORCEDIRNO | (int)VSSFlags.VSSFLAG_USERRONO | (int)VSSFlags.VSSFLAG_REPREPLACE);
+				}
+				catch(Exception ex)
+				{
+					if (string.IsNullOrWhiteSpace(_options.SSPath))
+						throw;
+
+					// special case when physical file not correspond to 
+					var m = Regex.Match(ex.Message, "File ['\"](?<phys>[^'\"]+)['\"] not found");
+					if (!m.Success)
+						throw;
+
+					if (m.Groups["phys"].Value == vssItem.Physical)
+						throw;
+
+					Console.WriteLine("\nPhysical file mismatch. Try get with ss.exe");
+
+					path = new SSExeHelper().Get(file.FileSpec, file.VssVersion, tempDir);
+					if (path == null)
+					{
+						Console.WriteLine("Get with ss.exe failed");
+						throw;
+					}
+				}
 
 				// in force mode check if file already in cache and coincidence by hash
 				if(_options.Force)
