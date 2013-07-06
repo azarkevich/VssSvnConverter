@@ -86,7 +86,7 @@ namespace VssSvnConverter
 
 			foreach (var v in Config["latest-only"])
 			{
-				LatestOnly.Add(v.ToLowerInvariant().Replace('\\', '/'));
+				LatestOnly.Add(v);
 			}
 
 			LatestOnlyRx = Config["latest-only-rx"].Select(rx => new Regex(rx, RegexOptions.IgnoreCase)).ToArray();

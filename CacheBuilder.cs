@@ -55,8 +55,6 @@ namespace VssSvnConverter
 					}
 
 					// build cached versions list
-					_pinned.Clear();
-
 					using(var sw = File.CreateText(DataFileName))
 					{
 						foreach (var fileGroup in versions.GroupBy(v => v.FileSpec))
@@ -68,11 +66,14 @@ namespace VssSvnConverter
 							var notRetainedVersions = new List<int>();
 							var otherErrors = new Dictionary<int, string>();
 
+							if (IsShouldBePinned(fileGroup.Key))
+							{
+								// reduce file versions to latest only
+								fileVersions = fileVersions.Skip(fileVersions.Count - 1).ToList();
+							}
+
 							foreach (var file in fileVersions)
 							{
-								if(!IsShouldBeProcessed(file))
-									continue;
-
 								var inf = _cache.GetFileInfo(file.FileSpec, file.VssVersion);
 
 								if(inf == null)
@@ -146,7 +147,7 @@ namespace VssSvnConverter
 
 		void Process(FileRevision file, int pos, int count)
 		{
-			if(!IsShouldBeProcessed(file))
+			if(!IsShouldBeProcessed(file.FileSpec))
 				return;
 
 			var alreadyInCache = false;
@@ -175,26 +176,25 @@ namespace VssSvnConverter
 		// when file request to being 'latest only' - its path added to this set and do not processed further
 		readonly HashSet<string> _pinned = new HashSet<string>();
 
-		bool IsShouldBeProcessed(FileRevision file)
+		// for pinned files return true only once - for first request
+		bool IsShouldBeProcessed(string spec)
 		{
-			var key = file.FileSpec.ToLowerInvariant().Replace('\\', '/');
-
 			// skip file if requested only latest version, and it was already produced
-			if(_pinned.Contains(key))
+			if (_pinned.Contains(spec))
 				return false;
 
-			if(IsShouldBePinned(key))
+			if (IsShouldBePinned(spec))
 			{
-				_pinned.Add(key);
-				_log.WriteLine("Pinned: {0}", key);
+				_pinned.Add(spec);
+				_log.WriteLine("Pinned: {0}", spec);
 			}
 
 			return true;
 		}
 
-		bool IsShouldBePinned(string key)
+		bool IsShouldBePinned(string spec)
 		{
-			return _options.LatestOnly.Contains(key) || _options.LatestOnlyRx.Any(rx => rx.IsMatch(key));
+			return _options.LatestOnly.Contains(spec) || _options.LatestOnlyRx.Any(rx => rx.IsMatch(spec));
 		}
 
 		void GetFromVss(FileRevision file)
