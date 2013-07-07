@@ -73,7 +73,6 @@ namespace VssSvnConverter
 							}
 						}
 					}
-
 				}
 				catch (Exception ex)
 				{
