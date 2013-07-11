@@ -160,7 +160,7 @@ namespace VssSvnConverter
 			else if(!string.IsNullOrWhiteSpace(_cache.GetFileError(file.FileSpec, file.VssVersion)))
 			{
 				alreadyInCache = true;
-				Console.Write("e");
+				Console.Write("E");
 				_log.WriteLine("Already in cache (error): {0}@{1}", file.FileSpec, file.VssVersion);
 			}
 
