@@ -12,10 +12,13 @@ namespace VssSvnConverter
 		const string DataFileName = "1-import-list.txt";
 		const string DataFileRootTypes = "1-roots.txt";
 		const string DataExtsFileName = "1-import-list-exts.txt";
+		const string DataSizesFileName = "1-import-list-sizes.txt";
 		const string LogFileName = "log-1-import-list.txt";
 
 		public void Build(Options opts)
 		{
+			var sizes = new Dictionary<string, int>();
+
 			_files = new List<string>();
 			_isInclude = opts.IncludePredicate;
 
@@ -33,7 +36,7 @@ namespace VssSvnConverter
 
 					rootTypes.WriteLine("{0}	{1}", rootItem.Spec, rootItem.Type == 0 ? "d" : "f");
 
-					WalkItem(rootItem);
+					WalkItem(rootItem, sizes);
 				}
 
 				File.WriteAllLines(DataFileName, _files.ToArray());
@@ -68,6 +71,17 @@ namespace VssSvnConverter
 				;
 			}
 
+			// dump files by size
+			using (var map = File.CreateText(DataSizesFileName))
+			{
+				sizes
+					.Select(kvp => new { Spec = kvp.Key, Size = kvp.Value })
+					.OrderByDescending(inf => inf.Size)
+					.ToList()
+					.ForEach(inf => map.WriteLine("{0,10:0.0} KiB	{1}:", inf.Size / 1024.0, inf.Spec))
+				;
+			}
+
 			Console.WriteLine("Building import files compete. Check: " + DataFileName);
 		}
 
@@ -91,20 +105,21 @@ namespace VssSvnConverter
 
 		StreamWriter _log;
 
-		void WalkItem(IVSSItem item)
+		void WalkItem(IVSSItem item, Dictionary<string, int> sizes)
 		{
 			if(item.Type == 1)
 			{
+				sizes[item.Spec] = item.Size;
 				_files.Add(item.Spec);
 				_log.WriteLine("+{0}", item.Spec);
 			}
 			else
 			{
-				WalkItems(item.Items);
+				WalkItems(item.Items, sizes);
 			}
 		}
 
-		void WalkItems(IVSSItems items)
+		void WalkItems(IVSSItems items, Dictionary<string, int> sizes)
 		{
 			foreach (IVSSItem item in items)
 			{
@@ -114,7 +129,7 @@ namespace VssSvnConverter
 					continue;
 				}
 
-				WalkItem(item);
+				WalkItem(item, sizes);
 			}
 		}
 	}
