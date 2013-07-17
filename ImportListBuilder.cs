@@ -78,7 +78,7 @@ namespace VssSvnConverter
 					.Select(kvp => new { Spec = kvp.Key, Size = kvp.Value })
 					.OrderByDescending(inf => inf.Size)
 					.ToList()
-					.ForEach(inf => map.WriteLine("{0,10:0.0} KiB	{1}:", inf.Size / 1024.0, inf.Spec))
+					.ForEach(inf => map.WriteLine("{0,10:0.0} KiB	{1}", inf.Size / 1024.0, inf.Spec))
 				;
 			}
 
