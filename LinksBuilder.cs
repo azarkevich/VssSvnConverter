@@ -23,7 +23,7 @@ namespace VssSvnConverter
 
 				foreach (IVSSItem vssLink in item.Links)
 				{
-					if(item.Spec != vssLink.Spec)
+					if (item.Spec.ToLowerInvariant() != vssLink.Spec.ToLowerInvariant())
 						xrefs.AddRef(item.Spec, vssLink.Spec);
 
 					foreach (IVSSCheckout vssCheckout in vssLink.Checkouts)
