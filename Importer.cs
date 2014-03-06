@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Text.RegularExpressions;
 using SharpSvn;
 using System.IO;
 using System.Collections.ObjectModel;
@@ -20,10 +22,27 @@ namespace VssSvnConverter
 		Uri _svnUri;
 		VssFileCache _cache;
 
+		ILookup<string, Regex> _unimportants;
+
 		public void Import(Options opts, List<Commit> commits)
 		{
 			_db = opts.DB;
 			_svnUri = opts.SvnRepoUri;
+
+			_unimportants = opts
+				.Config["unimportant-diff"]
+				.Select(v => {
+					var sep = v.IndexOf('?');
+					if (sep == -1)
+						throw new ApplicationException("Incorrect unimportant-diff: " + v + "\nAbsent separator '?' between filename and unimportant regex");
+
+					var fileName = v.Substring(0, sep).ToLowerInvariant().Replace('\\', '/').Trim('/');
+					var regex = new Regex(v.Substring(sep + 1), RegexOptions.IgnoreCase);
+
+					return new { K = fileName, V = regex };
+				})
+				.ToLookup(kv => kv.K, kv => kv.V)
+			;
 
 			var fromCommit = 0;
 
@@ -55,7 +74,7 @@ namespace VssSvnConverter
 
 							if (cr == null)
 							{
-								Console.WriteLine("Nothing to commit. Seems this revision was already added ?");
+								Console.WriteLine("	Nothing to commit. Seems this revision was already added or contains only unimportant chnages ?");
 								continue;
 							}
 
@@ -134,6 +153,9 @@ namespace VssSvnConverter
 
 				if(addToSvn)
 					svn.Add(dstPath);
+
+				if (!addToSvn && _unimportants.Count > 0)
+					RevertUnimportant(svn, dstPath, relPath);
 			}
 
 			var commitArgs = new SvnCommitArgs { LogMessage = "author: " + commit.User + "\n" + commit.Comment };
@@ -141,6 +163,51 @@ namespace VssSvnConverter
 			SvnCommitResult cr;
 			svn.Commit("svn-wc", commitArgs, out cr);
 			return cr;
+		}
+
+		void RevertUnimportant(SvnClient svn, string path, string relPath)
+		{
+			var relNorm = relPath.ToLowerInvariant().Replace('\\', '/').Trim('/');
+
+			var unimportantPatterns = _unimportants[relNorm].ToArray();
+
+			if (unimportantPatterns.Length == 0)
+				return;
+
+			var ms = new MemoryStream();
+			svn.Diff(
+				new SvnPathTarget(path, SvnRevisionType.Base),
+				new SvnPathTarget(path, SvnRevisionType.Working), new SvnDiffArgs {NoProperties = true},
+				ms
+				);
+
+			if (ms.Length == 0)
+				return;
+
+			ms.Position = 0;
+			var diffLines = new StreamReader(ms, Encoding.UTF8)
+				.ReadToEnd()
+				.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+				// skip header up to @@ marker
+				.SkipWhile(s => !s.StartsWith("@@"))
+				// get only real diff
+				.Where(s => s.StartsWith("-") || s.StartsWith("+"))
+				;
+
+			// check if all differences matched to any pattern
+			if (diffLines.All(diffLine => unimportantPatterns.Any(rx => rx.IsMatch(diffLine))))
+			{
+				// file contains only unimportant changes and will not be included in commit
+
+				// prevent corruption of cache - remove file before revert, so it will not be bound to cache
+				if (_useHardLink)
+					File.Delete(path);
+
+				// revert all unimportant changes
+				svn.Revert(path);
+
+				Console.WriteLine("	Skip unimportant: {0}", relPath);
+			}
 		}
 	}
 }
