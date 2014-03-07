@@ -22,12 +22,15 @@ namespace VssSvnConverter
 		Uri _svnUri;
 		VssFileCache _cache;
 
+		Options _opts;
+
 		ILookup<string, Regex> _unimportants;
 
 		public void Import(Options opts, List<Commit> commits)
 		{
 			_db = opts.DB;
 			_svnUri = opts.SvnRepoUri;
+			_opts = opts;
 
 			_unimportants = opts
 				.Config["unimportant-diff"]
@@ -121,6 +124,10 @@ namespace VssSvnConverter
 				}
 
 				var relPath = file.FileSpec.TrimStart('$', '/', '\\');
+
+				// special mode for check unimportant differenrces
+				if (_opts.ImportUnimportantOnly && !_unimportants[relPath.ToLowerInvariant().Replace('\\', '/').Trim('/')].Any())
+					continue;
 
 				log.WriteLine("Load: {0} -> {1}", file, relPath);
 

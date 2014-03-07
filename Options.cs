@@ -14,6 +14,7 @@ namespace VssSvnConverter
 
 		public bool Force;
 		public bool Ask;
+		public bool ImportUnimportantOnly;
 
 		public string SourceSafeIni;
 		public string SourceSafeUser;
@@ -56,6 +57,7 @@ namespace VssSvnConverter
 		{
 			Force = args.Any(a => a == "--force");
 			Ask = args.Any(a => a == "--ask");
+			ImportUnimportantOnly = args.Any(a => a == "--unimportant-only");
 		}
 
 		public void ReadConfig(string conf)
