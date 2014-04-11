@@ -2,6 +2,7 @@
 using System.Linq;
 using System.IO;
 using System.Reflection;
+using System.Windows.Forms;
 
 namespace VssSvnConverter
 {
@@ -36,7 +37,7 @@ namespace VssSvnConverter
 					return -1;
 				}
 
-				var unkVerb = verbs.FirstOrDefault(v => v != "build-list" && v != "build-versions" && v != "build-links" && v != "build-cache" && v != "build-commits" && v != "build-wc" && v != "import" && v != "build-scripts");
+				var unkVerb = verbs.FirstOrDefault(v => v != "ui" && v != "build-list" && v != "build-versions" && v != "build-links" && v != "build-cache" && v != "build-commits" && v != "build-wc" && v != "import" && v != "build-scripts");
 				if(unkVerb != null)
 				{
 					ShowHelp(unkVerb);
@@ -71,12 +72,18 @@ namespace VssSvnConverter
 			return 0;
 		}
 
-		private static void ProcessStage(Options opts, string verb)
+		public static void ProcessStage(Options opts, string verb)
 		{
 			Console.WriteLine("*** Stage: " + verb + " ***");
 
 			switch (verb)
 			{
+				case "ui":
+					Application.EnableVisualStyles();
+					Application.SetCompatibleTextRenderingDefault(false);
+					Application.Run(new SimpleUI(opts));
+					break;
+
 				case "build-list":
 					new ImportListBuilder().Build(opts);
 					Console.WriteLine("Next: build-versions");
@@ -136,6 +143,7 @@ namespace VssSvnConverter
 			Console.WriteLine(@"Usage: VssSvnConvert stage [options]
 where
 	stage - conversion stage:
+		ui - show simple UI with all available stages
 		all - perform all stages. With 5 second timeout between.
 		build-list - build list of files for import. After building, it can be edited by hand to remove *.exe for example
 		build-versions - build list of all versions of selected files

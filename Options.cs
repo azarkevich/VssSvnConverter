@@ -8,7 +8,7 @@ using vsslib;
 
 namespace VssSvnConverter
 {
-	class Options
+	public class Options
 	{
 		public ILookup<string, string> Config;
 
