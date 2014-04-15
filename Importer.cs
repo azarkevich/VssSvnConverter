@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Web.UI;
 using SharpSvn;
 using System.IO;
 using System.Collections.ObjectModel;
@@ -26,6 +27,16 @@ namespace VssSvnConverter
 
 		ILookup<string, Regex> _unimportants;
 
+		class CensoreGroup
+		{
+			public string Name;
+			public Regex[] FileNameRegex;
+			public IList<Tuple<Regex, string>> Replacement;
+			public Encoding Encoding;
+		}
+
+		IList<CensoreGroup> _censors;
+
 		public void Import(Options opts, List<Commit> commits)
 		{
 			_db = opts.DB;
@@ -45,6 +56,49 @@ namespace VssSvnConverter
 					return new { K = fileName, V = regex };
 				})
 				.ToLookup(kv => kv.K, kv => kv.V)
+			;
+
+			// load censores
+			_censors = opts
+				.Config["censore-group"]
+				.Select(v => {
+
+					var fileRxs = opts.Config[string.Format("censore-{0}-file-rx", v)].Select(x => new Regex(x, RegexOptions.IgnoreCase)).ToArray();
+
+					var encoding = Encoding.UTF8;
+
+					var encodingStr = opts.Config[string.Format("censore-{0}-encoding", v)].FirstOrDefault();
+					if (encodingStr != null)
+					{
+						int codePage;
+						if(int.TryParse(encodingStr, out codePage))
+							encoding = Encoding.GetEncoding(codePage);
+						else if (encodingStr == "utf-8-no-bom")
+							encoding = new UTF8Encoding(false);
+						else
+							encoding = Encoding.GetEncoding(encodingStr);
+					}
+
+					var replacements = new List<Tuple<Regex, string>>();
+					for (var i = 0; ; i++)
+					{
+						var rx = opts.Config[string.Format("censore-{0}-match{1}", v, i)].Select(x => new Regex(x, RegexOptions.IgnoreCase)).FirstOrDefault();
+						var replace = opts.Config[string.Format("censore-{0}-replace{1}", v, i)].FirstOrDefault();
+
+						if (i >= 1 && rx == null && replace == null)
+							break;
+
+						if (rx == null && replace == null)
+							continue;
+
+						var rpl = Tuple.Create(rx, replace);
+
+						replacements.Add(rpl);
+					}
+
+					return new CensoreGroup { Name = v, FileNameRegex = fileRxs, Replacement = replacements, Encoding = encoding };
+				})
+				.ToList()
 			;
 
 			var fromCommit = 0;
@@ -161,8 +215,29 @@ namespace VssSvnConverter
 				if(addToSvn)
 					svn.Add(dstPath);
 
+				// file can be modified in place if it is not hardlink
+				var canBeModifiedInplace = !_useHardLink;
+				Action<bool> prepareForModifyInplace = recuireContent => {
+
+					if (canBeModifiedInplace)
+						return;
+
+					// make copy of file instead of hardlink
+					File.Delete(dstPath);
+
+					if (recuireContent)
+					{
+						File.Copy(filePath, dstPath, true);
+						log.WriteLine("Copy: {0} -> {1}", filePath, dstPath);
+					}
+					canBeModifiedInplace = true;
+
+				};
+
+				DoCensoring(dstPath, relPath, prepareForModifyInplace);
+
 				if (!addToSvn && _unimportants.Count > 0)
-					RevertUnimportant(svn, dstPath, relPath);
+					RevertUnimportant(svn, dstPath, relPath, prepareForModifyInplace);
 			}
 
 			var commitArgs = new SvnCommitArgs { LogMessage = "author: " + commit.User + "\n" + commit.Comment };
@@ -172,7 +247,45 @@ namespace VssSvnConverter
 			return cr;
 		}
 
-		void RevertUnimportant(SvnClient svn, string path, string relPath)
+		void DoCensoring(string dstPath, string relPath, Action<bool> prepareFileForModifications)
+		{
+			var censors = _censors.Where(cg => cg.FileNameRegex.Any(rx => rx.IsMatch(relPath))).ToArray();
+
+			if (censors.Length == 0)
+				return;
+
+			var enc = censors.Select(cg => cg.Encoding).DefaultIfEmpty(Encoding.ASCII).First();
+
+			var modified = false;
+			var lines = File.ReadAllLines(dstPath, enc);
+
+			foreach (var cs in censors)
+			{
+				foreach (var replacement in cs.Replacement)
+				{
+					for (var i = 0; i < lines.Length; i++)
+					{
+						var newStr = replacement.Item1.Replace(lines[i], replacement.Item2);
+						if (newStr != lines[i])
+						{
+							lines[i] = newStr;
+							modified = true;
+						}
+					}
+				}
+			}
+
+			if (!modified)
+				return;
+
+			prepareFileForModifications(false);
+
+			File.WriteAllLines(dstPath, lines, enc);
+
+			Console.WriteLine("	Censored: {0}", relPath);
+		}
+
+		void RevertUnimportant(SvnClient svn, string path, string relPath, Action<bool> prepareFileForModifications)
 		{
 			var relNorm = relPath.ToLowerInvariant().Replace('\\', '/').Trim('/');
 
@@ -186,7 +299,7 @@ namespace VssSvnConverter
 				new SvnPathTarget(path, SvnRevisionType.Base),
 				new SvnPathTarget(path, SvnRevisionType.Working), new SvnDiffArgs {NoProperties = true},
 				ms
-				);
+			);
 
 			if (ms.Length == 0)
 				return;
@@ -199,16 +312,13 @@ namespace VssSvnConverter
 				.SkipWhile(s => !s.StartsWith("@@"))
 				// get only real diff
 				.Where(s => s.StartsWith("-") || s.StartsWith("+"))
-				;
+			;
 
 			// check if all differences matched to any pattern
 			if (diffLines.All(diffLine => unimportantPatterns.Any(rx => rx.IsMatch(diffLine))))
 			{
 				// file contains only unimportant changes and will not be included in commit
-
-				// prevent corruption of cache - remove file before revert, so it will not be bound to cache
-				if (_useHardLink)
-					File.Delete(path);
+				prepareFileForModifications(false);
 
 				// revert all unimportant changes
 				svn.Revert(path);
