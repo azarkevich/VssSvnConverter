@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Diagnostics;
 using SourceSafeTypeLib;
+using vsslib;
 
 namespace VssSvnConverter
 {
@@ -55,62 +57,40 @@ namespace VssSvnConverter
 			return list;
 		}
 
-		IEnumerable<List<string>> Split(IEnumerable<string> source, int parts)
-		{
-			return source
-				.Select((x, i) => new { Index = i, Value = x })
-				.GroupBy(x => x.Index % parts)
-				.Select(x => x.Select(v => v.Value).ToList())
-			;
-		}
-
 		public void Build(Options opts, List<string> files)
 		{
-			var lockHandle = new object();
-
-			var threadIndex = 0;
-
 			var stopWatch = new Stopwatch();
 			stopWatch.Start();
 
+			using (var cache = new VssFileCache(opts.CacheDir + "-revs", opts.DB.SrcSafeIni))
 			using(var wr = File.CreateText(DataFileName))
 			using(var log = File.CreateText(LogFileName))
 			{
-				Split(files, opts.VersionFetchThreads)
-					.Select(slice => BuildListAsync(opts, threadIndex++, slice, log, r => {
-						lock(lockHandle)
-						{
-							foreach (var rev in r)
-							{
-								wr.WriteLine("Ver:{0}	Spec:{1}	Phys:{2}	User:{3}	At:{4}	DT:{5}	Comment:{6}",
-									rev.VssVersion, rev.FileSpec, rev.Physical, rev.User, rev.At.Ticks, rev.At, rev.Comment.Replace("\r\n", "\n").Replace('\r', '\n').Replace('\n', '\u0001'));
-							}
-						}
-					}))
-					.ToList()
-					.ForEach(t => t.Join())
-				;
-			}
-
-			stopWatch.Stop();
-			Console.WriteLine("Build files versions list complete. Take: {0}", stopWatch.Elapsed);
-		}
-
-		Thread BuildListAsync(Options opts, int index, ICollection<string> files, TextWriter log, Action<List<FileRevision>> result)
-		{
-			var t = new Thread(delegate(object state) {
-	
 				var db = opts.DB;
 
-				var revisions = new List<FileRevision>();
 				var findex = 0;
 				foreach (var spec in files)
 				{
+					findex++;
+
 					try{
 						IVSSItem item = db.VSSItem[spec];
+						var head = item.VersionNumber;
 
-						Console.WriteLine("[{0}] [{1,5}/{2,5}] {3}", (char)('a' + index), ++findex, files.Count, item.Spec);
+						var timestamp = item.VSSVersion.Date.Ticks;
 
+						var cachedData = cache.GetFilePath(spec, head, timestamp);
+						if (cachedData != null)
+						{
+							Console.Write("c");
+							Save(wr, Load(cachedData));
+							// next file
+							continue;
+						}
+
+						Console.WriteLine("[{0,5}/{1,5}] {2}", findex, files.Count, item.Spec);
+
+						var itemRevisions = new List<FileRevision>();
 						foreach (IVSSVersion ver in item.Versions)
 						{
 							if (ver.Action.StartsWith("Labeled ") || ver.Action.StartsWith("Branched "))
@@ -128,7 +108,22 @@ namespace VssSvnConverter
 							if(opts.UserMappings.TryGetValue(user, out u))
 								user = u;
 
-							revisions.Add(new FileRevision { FileSpec = item.Spec, At = ver.Date.ToUniversalTime(), Comment = ver.Comment, VssVersion = ver.VersionNumber, User = user, Physical = ver.VSSItem.Physical });
+							var fileVersionInfo = new FileRevision { FileSpec = item.Spec, At = ver.Date.ToUniversalTime(), Comment = ver.Comment, VssVersion = ver.VersionNumber, User = user, Physical = ver.VSSItem.Physical };
+							itemRevisions.Add(fileVersionInfo);
+						}
+
+						var tempFile = Path.GetTempFileName();
+						try
+						{
+							using (var sw = new StreamWriter(tempFile, false, Encoding.UTF8))
+								Save(sw, itemRevisions);
+
+							cache.AddFile(spec, head, timestamp, tempFile, false);
+						}
+						finally
+						{
+							if (File.Exists(tempFile))
+								File.Delete(tempFile);
 						}
 					}
 					catch(Exception ex)
@@ -137,13 +132,20 @@ namespace VssSvnConverter
 						log.WriteLine(ex.ToString());
 					}
 				}
+			}
 
-				result(revisions);
-			});
+			stopWatch.Stop();
+			Console.WriteLine("Build files versions list complete. Take: {0}", stopWatch.Elapsed);
+		}
 
-			t.Start();
-
-			return t;
+		static void Save(TextWriter wr, IEnumerable<FileRevision> r)
+		{
+			foreach (var rev in r)
+			{
+				wr.WriteLine("Ver:{0}	Spec:{1}	Phys:{2}	User:{3}	At:{4}	DT:{5}	Comment:{6}",
+					rev.VssVersion, rev.FileSpec, rev.Physical, rev.User, rev.At.Ticks, rev.At,
+					rev.Comment.Replace("\r\n", "\n").Replace('\r', '\n').Replace('\n', '\u0001'));
+			}
 		}
 	}
 }

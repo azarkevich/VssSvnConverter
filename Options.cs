@@ -48,8 +48,6 @@ namespace VssSvnConverter
 		// directories, which will be created as revision 1, before first import
 		public string[] PreCreateDirs;
 		
-		public int VersionFetchThreads = 1;
-
 		// if specified, ss.exe will be used for retrieve files with known problems
 		public string SSPath;
 
@@ -80,8 +78,6 @@ namespace VssSvnConverter
 			;
 
 			SSPath = Config["ss.exe"].FirstOrDefault();
-
-			VersionFetchThreads = Config["versions-fetch-threads"].DefaultIfEmpty("1").Select(Int32.Parse).First();
 
 			// cache 
 			CacheDir = Config["cache-dir"].DefaultIfEmpty(".cache").First();
