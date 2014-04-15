@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CacheBuilder.cs" />
+    <Compile Include="ImportListStatsBuilder.cs" />
     <Compile Include="LinksBuilder.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="ScriptsBuilder.cs" />
@@ -68,6 +69,7 @@
     <Compile Include="ImportListBuilder.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WindowsImpersonation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using vcslib;
 using System;
 using System.Diagnostics;
@@ -9,7 +11,7 @@ namespace VssSvnConverter
 {
 	class ScriptsBuilder
 	{
-		public void Build(Options opts, List<string> importSpecs, Dictionary<string, bool> roots)
+		public void Build(Options opts, IList<Tuple<string, int>> importSpecs, Dictionary<string, bool> roots)
 		{
 			if(!Directory.Exists("scripts"))
 				Directory.CreateDirectory("scripts");
@@ -42,8 +44,39 @@ namespace VssSvnConverter
 			{
 				var file2Token = new XRefMap();
 				var linksDb = opts.Config["links-db-latest"].FirstOrDefault();
-				if(linksDb != null)
-					file2Token.LoadTokenFile(linksDb);
+				if (linksDb != null)
+				{
+					IDisposable disp = null;
+					try
+					{
+						var user = opts.Config["links-db-user"].FirstOrDefault();
+						var password = opts.Config["links-db-password"].FirstOrDefault();
+						if (user != null && password != null)
+						{
+							disp = WindowsImpersonation.Impersonate(new NetworkCredential(user, password));
+						}
+
+						// get max file
+						if (Directory.Exists(linksDb))
+						{
+							linksDb = Directory
+								.GetFiles(linksDb, "*.gz", SearchOption.AllDirectories)
+								.Select(f => new { Ind = Int32.Parse(Path.GetFileNameWithoutExtension(f)), Path = f })
+								.OrderByDescending(f => f.Ind)
+								.First()
+								.Path
+							;
+						}
+
+						using (var sr = new StreamReader(new GZipStream(File.OpenRead(linksDb), CompressionMode.Decompress)))
+							file2Token.LoadTokenFile(sr);
+					}
+					finally
+					{
+						if(disp != null)
+							disp.Dispose();
+					}
+				}
 
 				var token2Files = file2Token.Inverse();
 
@@ -106,7 +139,7 @@ namespace VssSvnConverter
 				}
 
 				// check all imported specs (except already handled) if they has token in db
-				foreach (var imported in importSpecs.Where(i => !importedSet.Contains(i)))
+				foreach (var imported in importSpecs.Select(t => t.Item1).Where(i => !importedSet.Contains(i)))
 				{
 					List<string> files;
 					if(!file2Token.Map.TryGetValue(imported, out files))
@@ -123,7 +156,7 @@ namespace VssSvnConverter
 				}
 
 				if(linksDb != null)
-					file2Token.SaveTokenFile(linksDb + ".u");
+					file2Token.SaveTokenFile("_links_db_token_file.updated");
 			}
 		}
 	}

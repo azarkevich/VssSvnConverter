@@ -57,7 +57,7 @@ namespace VssSvnConverter
 			return list;
 		}
 
-		public void Build(Options opts, List<string> files)
+		public void Build(Options opts, IList<Tuple<string, int>> files)
 		{
 			var stopWatch = new Stopwatch();
 			stopWatch.Start();
@@ -69,7 +69,7 @@ namespace VssSvnConverter
 				var db = opts.DB;
 
 				var findex = 0;
-				foreach (var spec in files)
+				foreach (var spec in files.Select(t => t.Item1))
 				{
 					findex++;
 

@@ -24,7 +24,7 @@ namespace VssSvnConverter
 					.Select(a => a.ToLowerInvariant())
 					.SelectMany(a => {
 						if(a== "all")
-							return new[] { "build-list", "build-versions", "build-links", "build-cache", "build-commits", "build-wc", "import", "build-scripts" };
+							return new[] { "build-list", "build-list-stats", "build-versions", "build-links", "build-cache", "build-commits", "build-wc", "import", "build-scripts" };
 
 						return Enumerable.Repeat(a, 1);
 					})
@@ -86,6 +86,11 @@ namespace VssSvnConverter
 
 				case "build-list":
 					new ImportListBuilder().Build(opts);
+					Console.WriteLine("Next: build-versions");
+					break;
+
+				case "build-list-stats":
+					new ImportListStatsBuilder().Build(opts, new ImportListBuilder().Load());
 					Console.WriteLine("Next: build-versions");
 					break;
 

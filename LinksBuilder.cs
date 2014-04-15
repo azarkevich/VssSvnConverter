@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using SourceSafeTypeLib;
 using vcslib;
 
@@ -11,11 +12,11 @@ namespace VssSvnConverter
 		public const string DataFileUiName = "3-state-links-ui.txt";
 		public const string DataFileCoName = "3-state-checkouts.txt";
 
-		public void Build(Options opts, List<string> files)
+		public void Build(Options opts, IList<Tuple<string, int>> files)
 		{
 			var xrefsCo = new XRefMap();
 			var xrefs = new XRefMap();
-			foreach (var file in files)
+			foreach (var file in files.Select(t => t.Item1))
 			{
 				Console.WriteLine(file);
 
