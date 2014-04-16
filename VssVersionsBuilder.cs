@@ -4,7 +4,6 @@ using System.Linq;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Diagnostics;
 using SourceSafeTypeLib;
 using vsslib;
@@ -40,8 +39,7 @@ namespace VssSvnConverter
 					if(!m.Success)
 						continue;
 
-					var v = new FileRevision
-					{
+					var v = new FileRevision {
 						At = new DateTime(long.Parse(m.Groups["at"].Value), DateTimeKind.Utc),
 						User = m.Groups["user"].Value,
 						FileSpec = m.Groups["spec"].Value,
@@ -66,6 +64,8 @@ namespace VssSvnConverter
 			using(var wr = File.CreateText(DataFileName))
 			using(var log = File.CreateText(LogFileName))
 			{
+				wr.AutoFlush = log.AutoFlush = true;
+
 				var db = opts.DB;
 
 				var findex = 0;
@@ -111,6 +111,29 @@ namespace VssSvnConverter
 							var fileVersionInfo = new FileRevision { FileSpec = item.Spec, At = ver.Date.ToUniversalTime(), Comment = ver.Comment, VssVersion = ver.VersionNumber, User = user, Physical = ver.VSSItem.Physical };
 							itemRevisions.Add(fileVersionInfo);
 						}
+
+						if(itemRevisions.Count > 0)
+						{
+							// some time date of items wrong, but versions - correct.
+							// sort items in correct order and fix dates
+							itemRevisions = itemRevisions.OrderBy(i => i.VssVersion).ToList();
+
+							// fix time. make time of each next item greater than all previous
+							var notEarlierThan = itemRevisions[0].At;
+							for (int i = 1; i < itemRevisions.Count; i++)
+							{
+								if (itemRevisions[i].At < notEarlierThan)
+								{
+									itemRevisions[i].At = notEarlierThan + TimeSpan.FromMilliseconds(1);
+									itemRevisions[i].Comment += "\n! Time was fixed during VSS -> SVN conversion. Time can be incorrect !\n";
+									itemRevisions[i].Comment = itemRevisions[i].Comment.Trim();
+								}
+
+								notEarlierThan = itemRevisions[i].At;
+							}
+						}
+
+						Save(wr, itemRevisions);
 
 						var tempFile = Path.GetTempFileName();
 						try
