@@ -16,6 +16,9 @@ namespace VssSvnConverter
 		public bool Ask;
 		public bool ImportUnimportantOnly;
 
+		public string Prefix;
+		public Regex FilterRx;
+
 		public string SourceSafeIni;
 		public string SourceSafeUser;
 		public string SourceSafePassword;
@@ -56,6 +59,11 @@ namespace VssSvnConverter
 			Force = args.Any(a => a == "--force");
 			Ask = args.Any(a => a == "--ask");
 			ImportUnimportantOnly = args.Any(a => a == "--unimportant-only");
+			Prefix = args.Where(a => a.StartsWith("--prefix=")).Select(a => a.Substring("--prefix=".Length)).FirstOrDefault();
+
+			var filterRx = args.Where(a => a.StartsWith("--filter=")).Select(a => a.Substring("--filter=".Length)).FirstOrDefault();
+			if(filterRx != null)
+				FilterRx = new Regex(filterRx, RegexOptions.IgnoreCase);
 		}
 
 		public void ReadConfig(string conf)
@@ -79,7 +87,7 @@ namespace VssSvnConverter
 
 			SSPath = Config["ss.exe"].FirstOrDefault();
 
-			// cache 
+			// cache
 			CacheDir = Config["cache-dir"].DefaultIfEmpty(".cache").First();
 
 			foreach (var v in Config["latest-only"])

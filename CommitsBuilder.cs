@@ -70,11 +70,6 @@ namespace VssSvnConverter
 					return _comment;
 
 				var sb = new StringBuilder();
-				if(At != LastChangeAt)
-				{
-					sb.AppendFormat("Changes:\n\t{0}\n\t{1}\n", At, LastChangeAt);
-					sb.AppendLine();
-				}
 
 				if(_commentsHash.Count > 0)
 				{
@@ -84,10 +79,19 @@ namespace VssSvnConverter
 					}
 					else
 					{
-						sb.AppendLine("Comments from VSS:");
-						sb.AppendLine(string.Join("\n", _commentsHash.Select(c => "\t" + c).ToArray()));
+						foreach (var c in _commentsHash.Select(c => "\t" + c).ToArray())
+						{
+							sb.AppendLine(c);
+							sb.AppendLine("---");
+						}
+						sb.AppendLine("(Comments from VSS)");
 					}
 					sb.AppendLine();
+				}
+
+				if (At != LastChangeAt)
+				{
+					sb.AppendFormat("Changes:\n\t{0}\n\t{1}", At, LastChangeAt);
 				}
 
 				return sb.ToString();

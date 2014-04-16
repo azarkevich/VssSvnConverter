@@ -39,7 +39,6 @@ namespace VssSvnConverter
 			}
 
 			// generate script for update links information + new links.db file
-
 			using(var sw = File.CreateText("scripts\\apply-link-tokens.bat"))
 			{
 				var file2Token = new XRefMap();
@@ -67,6 +66,10 @@ namespace VssSvnConverter
 								.Path
 							;
 						}
+
+						using (var src = new GZipStream(File.OpenRead(linksDb), CompressionMode.Decompress))
+						using (var dst = File.Create("_links_db_token_file.original.txt"))
+							src.CopyTo(dst);
 
 						using (var sr = new StreamReader(new GZipStream(File.OpenRead(linksDb), CompressionMode.Decompress)))
 							file2Token.LoadTokenFile(sr);
@@ -156,7 +159,7 @@ namespace VssSvnConverter
 				}
 
 				if(linksDb != null)
-					file2Token.SaveTokenFile("_links_db_token_file.updated");
+					file2Token.SaveTokenFile("_links_db_token_file.updated.txt");
 			}
 		}
 	}

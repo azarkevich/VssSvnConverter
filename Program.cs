@@ -37,7 +37,7 @@ namespace VssSvnConverter
 					return -1;
 				}
 
-				var unkVerb = verbs.FirstOrDefault(v => v != "ui" && v != "build-list" && v != "build-versions" && v != "build-links" && v != "build-cache" && v != "build-commits" && v != "build-wc" && v != "import" && v != "build-scripts");
+				var unkVerb = verbs.FirstOrDefault(v => v != "ui" && v != "build-list" && v != "build-list-stats" && v != "build-versions" && v != "build-links" && v != "build-cache" && v != "build-commits" && v != "build-wc" && v != "import" && v != "build-scripts");
 				if(unkVerb != null)
 				{
 					ShowHelp(unkVerb);
@@ -151,6 +151,7 @@ where
 		ui - show simple UI with all available stages
 		all - perform all stages. With 5 second timeout between.
 		build-list - build list of files for import. After building, it can be edited by hand to remove *.exe for example
+		build-list-stats - build statistic for list of import
 		build-versions - build list of all versions of selected files
 		build-links - build list of linked files
 		build-cache - get all required versions to local cache
@@ -160,6 +161,11 @@ where
 		build-scripts - generate some useful scripts
 
 	each stage suppose, that previous stage results was already build and available.
+
+Options for
+	build-list-stats:
+		--prefix=$/Project/xxxx - calculate statistic only for files with specified prefix
+		--filter=Project/[^/]+$ - calculate statistic only for files with specified regex
 
 Setup config VssSvnConvert.conf before run converter.
 

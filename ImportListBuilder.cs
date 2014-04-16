@@ -58,7 +58,8 @@ namespace VssSvnConverter
 		{
 			return File
 				.ReadAllLines(DataFileRootTypes)
-				.Select(l => l.Split('\t'))
+				.Where(l => !string.IsNullOrWhiteSpace(l))
+				.Select(l => l.Trim().Split('\t'))
 				.ToDictionary(ar => ar[0], ar => ar[1] == "d")
 			;
 		}
