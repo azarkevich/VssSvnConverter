@@ -160,8 +160,15 @@ namespace VssSvnConverter
 			else if(!string.IsNullOrWhiteSpace(_cache.GetFileError(file.FileSpec, file.VssVersion)))
 			{
 				alreadyInCache = true;
-				Console.Write("E");
-				_log.WriteLine("Already in cache (error): {0}@{1}", file.FileSpec, file.VssVersion);
+				var err = _cache.GetFileError(file.FileSpec, file.VssVersion);
+
+				if(err == "not-retained")
+					Console.Write("W");
+				else
+					Console.Write("E");
+				
+				_log.WriteLine("Already in cache (cached error status): {0}@{1}", file.FileSpec, file.VssVersion);
+				_log.WriteLine("	{0}", err);
 			}
 
 			if(alreadyInCache && !_options.Force)
