@@ -52,6 +52,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CacheBuilder.cs" />
+    <Compile Include="Commit.cs" />
+    <Compile Include="FileRevisionLite.cs" />
     <Compile Include="ImportListStatsBuilder.cs" />
     <Compile Include="LinksBuilder.cs" />
     <Compile Include="Options.cs" />

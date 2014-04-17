@@ -1,126 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using System.Text.RegularExpressions;
 
 namespace VssSvnConverter
 {
-	class FileRevisionLite
-	{
-		public DateTime At;
-		public string FileSpec;
-		public int VssVersion;
-	}
-
-	class Commit
-	{
-		public DateTime At;
-		public DateTime LastChangeAt;
-		public string User;
-	
-		// File revisions
-		public void AddRevision(FileRevisionLite rev)
-		{
-			FileRevisionLite existing;
-			if(!_filesMap.TryGetValue(rev.FileSpec, out existing) || existing.VssVersion < rev.VssVersion)
-			{
-				// add or update
-				_filesMap[rev.FileSpec] = rev;
-				
-				LastChangeAt = rev.At;
-			}
-		}
-
-		public bool ContainsFile(string fileSpec)
-		{
-			return _filesMap.ContainsKey(fileSpec);
-		}
-
-		public IEnumerable<FileRevisionLite> Files
-		{
-			get
-			{
-				return _filesMap.Values;
-			}
-		}
-
-		readonly Dictionary<string, FileRevisionLite> _filesMap = new Dictionary<string, FileRevisionLite>();
-
-		// comments
-		public string SerialziedComments
-		{
-			get
-			{
-				return Comment.Replace('\n', '\x01').Replace("\r", "");
-			}
-			set
-			{
-				_commentsHash.Clear();
-				Comment = value.Replace('\x01', '\n');
-			}
-		}
-
-		public string Comment
-		{
-			get
-			{
-				if(_comment != null)
-					return _comment;
-
-				var sb = new StringBuilder();
-
-				if(_commentsHash.Count > 0)
-				{
-					if(_commentsHash.Count == 1)
-					{
-						sb.AppendLine(_commentsHash.First());
-					}
-					else
-					{
-						foreach (var c in _commentsHash.Select(c => "\t" + c).ToArray())
-						{
-							sb.AppendLine(c);
-							sb.AppendLine("---");
-						}
-						sb.AppendLine("(Comments from VSS)");
-					}
-					sb.AppendLine();
-				}
-
-				if (At != LastChangeAt)
-				{
-					sb.AppendFormat("Changes:\n\t{0}\n\t{1}", At, LastChangeAt);
-				}
-
-				return sb.ToString();
-			}
-			set
-			{
-				_comment = value;
-			}
-		}
-		string _comment;
-
-		public IEnumerable<string> Comments
-		{
-			get
-			{
-				return _commentsHash;
-			}
-		}
-
-		readonly HashSet<string> _commentsHash = new HashSet<string>();
-
-		public void AddComment(string comment)
-		{
-			comment = (comment ?? "").Trim();
-			if(comment != "")
-				_commentsHash.Add(comment);
-		}
-	}
-
 	class CommitsBuilder
 	{
 		const string DataFileName = "5-commits-list.txt";
@@ -146,7 +31,7 @@ namespace VssSvnConverter
 							commit.AddRevision(new FileRevisionLite {
 								FileSpec = line.Substring(pos + 1),
 								VssVersion = Int32.Parse(line.Substring(0, pos))
-							});
+							}, "");
 						}
 					}
 					else
@@ -245,9 +130,7 @@ namespace VssSvnConverter
 				}
 
 				// add file revision
-				cmt.AddRevision(new FileRevisionLite { FileSpec = rev.FileSpec, VssVersion = rev.VssVersion, At = rev.At });
-
-				cmt.AddComment(rev.Comment);
+				cmt.AddRevision(new FileRevisionLite { FileSpec = rev.FileSpec, VssVersion = rev.VssVersion, At = rev.At }, rev.Comment);
 			}
 		}
 	}
