@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace VssSvnConverter
 {
 	public partial class SimpleUI : Form
 	{
-		Options _opts;
+		readonly Options _opts;
 		public SimpleUI(Options opts)
 		{
 			_opts = opts;
@@ -15,9 +17,18 @@ namespace VssSvnConverter
 
 		private void buildList_Click(object sender, EventArgs e)
 		{
-			Program.ProcessStage(_opts, (sender as Button).Tag as string);
+			var btn = (Button)sender;
+			btn.BackColor = Color.Yellow;
+			Controls.Cast<Control>().ToList().ForEach(c => c.Enabled = false);
 
-			(sender as Button).BackColor = Color.PaleGreen;
+			new Thread(() => {
+				Program.ProcessStage(_opts, btn.Tag as string);
+				Action action = () => {
+					btn.BackColor = Color.PaleGreen;
+					Controls.Cast<Control>().ToList().ForEach(c => c.Enabled = true);
+				};
+				Invoke(action);
+			}).Start();
 		}
 	}
 }
