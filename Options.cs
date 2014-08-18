@@ -90,6 +90,7 @@ namespace VssSvnConverter
 			// cache
 			CacheDir = Config["cache-dir"].DefaultIfEmpty(".cache").First();
 
+			LatestOnly.Clear();
 			foreach (var v in Config["latest-only"])
 			{
 				LatestOnly.Add(v);
@@ -133,6 +134,12 @@ namespace VssSvnConverter
 			PreCreateDirs = Config["pre-create-dir"].ToArray();
 
 			// open VSS DB
+			if (DB != null)
+			{
+				DB.Close();
+				DB = null;
+			}
+
 			SourceSafeIni = Config["source-safe-ini"].DefaultIfEmpty("srcsafe.ini").First();
 			SourceSafeUser = Config["source-safe-user"].DefaultIfEmpty("").First();
 			SourceSafePassword = Config["source-safe-password"].DefaultIfEmpty("").First();

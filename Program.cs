@@ -8,12 +8,19 @@ namespace VssSvnConverter
 {
 	class Program
 	{
+		static Options _opts;
+
 		static Int32 Main(string[] args)
 		{
-			var opts = new Options(args);
+			_opts = new Options(args);
 
 			try{
-				if(args.Length == 0 || args.Any(a => a.StartsWith("/help")) || args.Any(a => a.StartsWith("-h")) || args.Any(a => a.StartsWith("--help")))
+				if (args.Length == 0)
+				{
+					args = new [] { "ui" };
+				}
+
+				if(args.Any(a => a.StartsWith("/help")) || args.Any(a => a.StartsWith("-h")) || args.Any(a => a.StartsWith("--help")))
 				{
 					ShowHelp();
 					return -1;
@@ -44,14 +51,12 @@ namespace VssSvnConverter
 					return -1;
 				}
 
-				opts.ReadConfig(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "VssSvnConverter.conf"));
-
-				verbs.ForEach(v => ProcessStage(opts, v));
+				verbs.ForEach(ProcessStage);
 			}
 			catch(ApplicationException ex)
 			{
 				Console.Error.WriteLine(ex.Message);
-				if(opts.Ask)
+				if (_opts.Ask)
 				{
 					Console.WriteLine("Press any key...");
 					Console.ReadKey();
@@ -61,7 +66,7 @@ namespace VssSvnConverter
 			catch(Exception ex)
 			{
 				Console.Error.WriteLine(ex.ToString());
-				if(opts.Ask)
+				if (_opts.Ask)
 				{
 					Console.WriteLine("Press any key...");
 					Console.ReadKey();
@@ -72,59 +77,62 @@ namespace VssSvnConverter
 			return 0;
 		}
 
-		public static void ProcessStage(Options opts, string verb)
+		public static void ProcessStage(string verb)
 		{
 			Console.WriteLine("*** Stage: " + verb + " ***");
+
+			// read config
+			_opts.ReadConfig(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "VssSvnConverter.conf"));
 
 			switch (verb)
 			{
 				case "ui":
 					Application.EnableVisualStyles();
 					Application.SetCompatibleTextRenderingDefault(false);
-					Application.Run(new SimpleUI(opts));
+					Application.Run(new SimpleUI());
 					break;
 
 				case "build-list":
-					new ImportListBuilder().Build(opts);
+					new ImportListBuilder().Build(_opts);
 					Console.WriteLine("Next: build-versions");
 					break;
 
 				case "build-list-stats":
-					new ImportListStatsBuilder().Build(opts, new ImportListBuilder().Load());
+					new ImportListStatsBuilder().Build(_opts, new ImportListBuilder().Load());
 					Console.WriteLine("Next: build-versions");
 					break;
 
 				case "build-versions":
-					new VssVersionsBuilder().Build(opts, new ImportListBuilder().Load());
+					new VssVersionsBuilder().Build(_opts, new ImportListBuilder().Load());
 					Console.WriteLine("Next: build-cache");
 					break;
 
 				case "build-links":
-					new LinksBuilder().Build(opts, new ImportListBuilder().Load());
+					new LinksBuilder().Build(_opts, new ImportListBuilder().Load());
 					Console.WriteLine("Next: build-cache");
 					break;
 
 				case "build-cache":
-					new CacheBuilder(opts).Build(new VssVersionsBuilder().Load());
+					new CacheBuilder(_opts).Build(new VssVersionsBuilder().Load());
 					Console.WriteLine("Next: build-commits");
 					break;
 
 				case "build-commits":
-					new CommitsBuilder().Build(opts, new CacheBuilder(opts).Load());
+					new CommitsBuilder().Build(_opts, new CacheBuilder(_opts).Load());
 					Console.WriteLine("Next: build-wc");
 					break;
 
 				case "build-wc":
-					new WcBuilder().Build(opts);
+					new WcBuilder().Build(_opts);
 					Console.WriteLine("Next: import");
 					break;
 
 				case "import":
-					new Importer().Import(opts, new CommitsBuilder().Load());
+					new Importer().Import(_opts, new CommitsBuilder().Load());
 					break;
 
 				case "build-scripts":
-					new ScriptsBuilder().Build(opts, new ImportListBuilder().Load(), new ImportListBuilder().LoadRootTypes());
+					new ScriptsBuilder().Build(_opts, new ImportListBuilder().Load(), new ImportListBuilder().LoadRootTypes());
 					break;
 
 				default:
@@ -133,7 +141,7 @@ namespace VssSvnConverter
 
 			Console.WriteLine("");
 
-			if(opts.Ask)
+			if(_opts.Ask)
 			{
 				Console.WriteLine("Press any key...");
 				Console.ReadKey();

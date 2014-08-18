@@ -8,10 +8,8 @@ namespace VssSvnConverter
 {
 	public partial class SimpleUI : Form
 	{
-		readonly Options _opts;
-		public SimpleUI(Options opts)
+		public SimpleUI()
 		{
-			_opts = opts;
 			InitializeComponent();
 		}
 
@@ -22,7 +20,7 @@ namespace VssSvnConverter
 			Controls.Cast<Control>().ToList().ForEach(c => c.Enabled = false);
 
 			new Thread(() => {
-				Program.ProcessStage(_opts, btn.Tag as string);
+				Program.ProcessStage(btn.Tag as string);
 				Action action = () => {
 					btn.BackColor = Color.PaleGreen;
 					Controls.Cast<Control>().ToList().ForEach(c => c.Enabled = true);
