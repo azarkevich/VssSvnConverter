@@ -158,8 +158,11 @@ namespace VssSvnConverter
 					sw.WriteLine("svn ps ihs:link-token \"{0}\" \"{1}\"", token, file);
 				}
 
-				if(linksDb != null)
+				if (linksDb != null)
+				{
 					file2Token.SaveTokenFile("_links_db_token_file.updated.txt");
+					File.AppendAllText("_links_db_token_file.updated.txt", "# hash: skip");
+				}
 			}
 		}
 	}
