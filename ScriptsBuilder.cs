@@ -68,7 +68,7 @@ namespace VssSvnConverter
 						}
 
 						using (var src = new GZipStream(File.OpenRead(linksDb), CompressionMode.Decompress))
-						using (var dst = File.Create("_links_db_token_file.original.txt"))
+						using (var dst = File.Create(string.Format("_links_db_token_file.{0}.original.txt", Path.GetFileNameWithoutExtension(linksDb))))
 							src.CopyTo(dst);
 
 						using (var sr = new StreamReader(new GZipStream(File.OpenRead(linksDb), CompressionMode.Decompress)))
@@ -160,8 +160,9 @@ namespace VssSvnConverter
 
 				if (linksDb != null)
 				{
-					file2Token.SaveTokenFile("_links_db_token_file.updated.txt");
-					File.AppendAllText("_links_db_token_file.updated.txt", "# hash: skip");
+					var updated = string.Format("_links_db_token_file.{0}.updated.txt", Path.GetFileNameWithoutExtension(linksDb));
+					file2Token.SaveTokenFile(updated);
+					File.AppendAllText(updated, "# hash: skip");
 				}
 			}
 		}
