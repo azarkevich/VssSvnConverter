@@ -24,7 +24,7 @@ namespace VssSvnConverter
 
 				foreach (IVSSItem vssLink in item.Links)
 				{
-					if (!String.Equals(item.Spec, vssLink.Spec, StringComparison.OrdinalIgnoreCase))
+					if (!String.Equals(item.Spec, vssLink.Spec, StringComparison.OrdinalIgnoreCase) && !vssLink.Deleted)
 						xrefs.AddRef(item.Spec, vssLink.Spec);
 
 					foreach (IVSSCheckout vssCheckout in vssLink.Checkouts)
