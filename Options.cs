@@ -131,8 +131,6 @@ namespace VssSvnConverter
 			SvnRepo = Path.Combine(Environment.CurrentDirectory, "_repository");
 			SvnRepoUri = new Uri("file:///" + SvnRepo.Replace('\\', '/'));
 
-			PreCreateDirs = Config["pre-create-dir"].ToArray();
-
 			// open VSS DB
 			if (DB != null)
 			{

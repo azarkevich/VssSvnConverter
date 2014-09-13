@@ -53,6 +53,11 @@
   <ItemGroup>
     <Compile Include="CacheBuilder.cs" />
     <Compile Include="Commit.cs" />
+    <Compile Include="ext\FileCache.cs" />
+    <Compile Include="ext\SSExeHelper.cs" />
+    <Compile Include="ext\VssFileCache.cs" />
+    <Compile Include="ext\VssItemExtensions.cs" />
+    <Compile Include="ext\XRefMap.cs" />
     <Compile Include="FileRevisionLite.cs" />
     <Compile Include="ImportListStatsBuilder.cs" />
     <Compile Include="LinksBuilder.cs" />
@@ -83,14 +88,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\vcslib\vcslib.csproj">
-      <Project>{E9A1BC40-E02C-41FD-BA1A-6526167109D8}</Project>
-      <Name>vcslib</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\vsslib\vsslib.csproj">
-      <Project>{935EC6E9-0796-49A7-8CB9-593304158027}</Project>
-      <Name>vsslib</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="SourceSafeTypeLib">
@@ -109,12 +106,4 @@
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

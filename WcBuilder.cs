@@ -30,14 +30,6 @@ namespace VssSvnConverter
 			{
 				svn.CheckOut(new SvnUriTarget(opts.SvnRepoUri), "svn-wc");
 
-				foreach (var dir in opts.PreCreateDirs)
-				{
-					var wcDir = Path.Combine("svn-wc", dir);
-
-					if(!Directory.Exists(wcDir))
-						Directory.CreateDirectory(wcDir);
-				}
-
 				foreach (var fse in Directory.EnumerateFileSystemEntries("svn-wc"))
 				{
 					if(Path.GetFileName(fse).ToLowerInvariant() == ".svn")
