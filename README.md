@@ -42,6 +42,6 @@ Conversion procedure
 
 After conversion import data to production repository in special directory for imports
 ```
-svnadmin dump d:\VssSvnConverter\_repository | svnadmin load . --parent-dir /import
+svnadmin dump d:\VssSvnConverter\_repository | svnadmin load d:\production-svn-repo\ --parent-dir /import
 ```
 And then use standard SVN tools for move imported stuff from /import to any correct place in repository.
