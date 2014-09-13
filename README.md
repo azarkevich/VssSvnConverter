@@ -4,15 +4,14 @@ Yet another converter of Visual Source Safe database to Subversion repository
 
 Why?
 
-This converter was written and tested during gradfual conversion of 18GB VSS repository to Subversion.
+This converter was written and tested during gradual conversion of 18GB VSS repository to Subversion.
 No one other tool(which I try), such as Vss2Svn, VssMigrate was unable do this work. It is too big, to complex and corrupted.
 
 So, this converter has advantages and disadvantages.
 
 Most significant disadvantages is:
 
-# This tool require setup in config files.
-# Tool has only cli interface and require several runs with different options for convert
+# This tool require setup in config files and has very minimalistic GUI.
 # Converted only currently visible sources tree, i.e:
 #* Deleted files not converted
 #* Moved files will be look as if already live on last place
