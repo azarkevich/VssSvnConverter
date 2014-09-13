@@ -1,4 +1,5 @@
-'''VssSvnConverter'''
+VssSvnConverter
+====================
 
 Yet another converter of Visual Source Safe database to Subversion repository
 
@@ -9,27 +10,28 @@ No one other tool(which I try), such as Vss2Svn, VssMigrate was unable do this w
 
 So, this converter has advantages and disadvantages.
 
-Most significant disadvantages is:
+Most significant disadvantages is
 
-# This tool require setup in config files and has very minimalistic GUI.
-# Converted only currently visible sources tree, i.e:
-#* Deleted files not converted
-#* Moved files will be look as if already live on last place
-#* Copied files will not have common ancestor.
-# Empty directories not converted
+This tool require setup in config files and has _very_ minimalistic GUI.
+* Converted only currently visible sources tree, i.e:
+* Deleted files not converted
+* Moved files will be look as if already live on last place
+* Copied files will not have common ancestor.
+* Empty directories not converted
 
 But, also took has next advantages:
 
-# If you have big (really BIG) VSS repository, it is possible convert only part of it. Then next piece, next... We continue such continuous conversion already 1.5 years.
-# Tool has rich filtration rules for prevent conversion unnecessary files in destination repository
-# Tool use COM interface to VSS database, but in case of error also try CLI (ss.exe). Some time CLI interface work correct, while COM - failed.
-# For several conversion tries used file cache for speedup access to VSS
-# Setting for grouping changed into commits
-# Mapping user names
-# Correct import of pinned files (only latest version)
+* If you have big (really BIG) VSS repository, it is possible convert only part of it. Then next piece, next... We continue such continuous conversion already 1.5 years.
+* Tool has rich filtration rules for prevent conversion unnecessary files in destination repository
+* Tool use COM interface to VSS database, but in case of error also try CLI (ss.exe). Some time CLI interface work correct, while COM - failed.
+* For several conversion tries used file cache for speedup access to VSS
+* Setting for grouping changed into commits
+* Mapping user names
+* Correct import of pinned files (only latest version)
 
 
-'' Conversion procedure ''
+Conversion procedure
+--------------------
 
 # Modify in VssSvnConverter.conf file path to source safe database (full path to sourcesafe.ini file), username and password
 # Select one or many VSS project for import and add to config file
