@@ -1,5 +1,5 @@
 VssSvnConverter
-====================
+===============
 
 Yet another converter of Visual Source Safe database to Subversion repository
 
