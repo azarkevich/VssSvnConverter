@@ -58,10 +58,10 @@ namespace VssSvnConverter
 			{
 				foreach (var kvp in coDict.OrderByDescending(kvp => kvp.Key))
 				{
-					tw.WriteLine("{0}", kvp.Key);
+					tw.WriteLine("{0:yyyy-MM-dd} ({1} days ago)", kvp.Key, (int)(DateTime.Now - kvp.Key).TotalDays);
 					foreach (var tuple in kvp.Value)
 					{
-						tw.WriteLine("{0} at {1}", tuple.Item1, tuple.Item2);
+						tw.WriteLine("\t{0} at {1}", tuple.Item1, tuple.Item2);
 					}
 					tw.WriteLine();
 				}
