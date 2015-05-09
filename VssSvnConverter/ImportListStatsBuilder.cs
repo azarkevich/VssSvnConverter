@@ -47,7 +47,7 @@ namespace VssSvnConverter
 			{
 				// overview
 				map.WriteLine("== Overview ==");
-				map.WriteLine("<all>    : Count: {0,5}, Size: {1,10:0.00} Kb", files.Count, files.Sum(f => f.Item2) / 1024.0);
+				map.WriteLine("<all>    : Count: {0,5}, Size: {1,10:0.00} Kb", files.Count, files.Sum(f => (double)f.Item2) / 1024.0);
 
 				files
 					.Select(t => new { Ext = (Path.GetExtension(t.Item1) ?? "").ToLowerInvariant(), Size = t.Item2 })
