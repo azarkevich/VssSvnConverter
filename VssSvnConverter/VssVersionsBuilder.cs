@@ -88,7 +88,8 @@ namespace VssSvnConverter
 							continue;
 						}
 
-						Console.WriteLine("[{0,5}/{1,5}] {2}", findex, files.Count, item.Spec);
+						Console.Write("[{0,5}/{1,5}] {2}", findex, files.Count, item.Spec);
+						var index = 0;
 
 						var itemRevisions = new List<FileRevision>();
 						foreach (IVSSVersion ver in item.Versions)
@@ -96,7 +97,10 @@ namespace VssSvnConverter
 							if (ver.Action.StartsWith("Labeled ") || ver.Action.StartsWith("Branched "))
 								continue;
 
-							if(!ver.Action.StartsWith("Checked in ") && !ver.Action.StartsWith("Created ") && !ver.Action.StartsWith("Archived ") && !ver.Action.StartsWith("Rollback to"))
+							if ((++index % 10) == 0)
+								Console.Write('.');
+
+							if (!ver.Action.StartsWith("Checked in ") && !ver.Action.StartsWith("Created ") && !ver.Action.StartsWith("Archived ") && !ver.Action.StartsWith("Rollback to"))
 							{
 								log.WriteLine("Unknown action: " + ver.Action);
 							}
@@ -112,7 +116,9 @@ namespace VssSvnConverter
 							itemRevisions.Add(fileVersionInfo);
 						}
 
-						if(itemRevisions.Count > 0)
+						Console.WriteLine();
+
+						if (itemRevisions.Count > 0)
 						{
 							// some time date of items wrong, but versions - correct.
 							// sort items in correct order and fix dates
