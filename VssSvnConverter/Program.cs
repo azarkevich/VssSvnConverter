@@ -98,7 +98,7 @@ namespace VssSvnConverter
 					break;
 
 				case "build-list-stats":
-					new ImportListStatsBuilder().Build(_opts, new ImportListBuilder().Load());
+					new ImportListBuilder().FilterFiles(_opts);
 					Console.WriteLine("Next: build-versions");
 					break;
 

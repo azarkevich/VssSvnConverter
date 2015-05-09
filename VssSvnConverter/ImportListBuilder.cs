@@ -9,24 +9,22 @@ namespace VssSvnConverter
 {
 	class ImportListBuilder
 	{
-		const string DataFileName = "1-import-list.txt";
+		const string AllFilesList = "1-list.txt";
+		const string ExcludedFilesList = "1-not-import-list.txt";
+		const string FilesList = "1-import-list.txt";
+
 		const string DataFileRootTypes = "1-roots.txt";
-		const string LogFileName = "log-1-import-list.txt";
+		const string DataExtsFileName = "1-import-list-exts.txt";
+		const string DataSizesFileName = "1-import-list-sizes.txt";
 
 		List<Tuple<string, int>> _files;
-		Func<string, bool> _isInclude;
-
-		StreamWriter _log;
 
 		public void Build(Options opts)
 		{
 			_files = new List<Tuple<string, int>>();
-			_isInclude = opts.IncludePredicate;
 
-			using(_log = File.CreateText(LogFileName))
 			using(var rootTypes = File.CreateText(DataFileRootTypes))
 			{
-				_log.AutoFlush = true;
 				rootTypes.AutoFlush = true;
 
 				foreach (var root in opts.Config["import-root"])
@@ -40,17 +38,24 @@ namespace VssSvnConverter
 					WalkItem(rootItem);
 				}
 
-				File.WriteAllLines(DataFileName, _files.Select(t => string.Format("{0}	{1}", t.Item1, t.Item2)).ToArray());
+				File.WriteAllLines(AllFilesList, _files.Select(t => string.Format("{0}	{1}", t.Item1, t.Item2)).ToArray());
 			}
 
-			new ImportListStatsBuilder().Build(opts, _files);
+			Console.WriteLine("All files: " + AllFilesList);
 
-			Console.WriteLine("Building import files compete. Check: " + DataFileName);
+			FilterFiles(opts);
+
+			Console.WriteLine("Selected files: " + FilesList);
+		}
+
+		static List<Tuple<string, int>> LoadFrom(string path)
+		{
+			return File.ReadAllLines(path).Select(l => Tuple.Create(l.Split('\t')[0], Int32.Parse(l.Split('\t')[1]))).ToList();
 		}
 
 		public List<Tuple<string, int>> Load()
 		{
-			return File.ReadAllLines(DataFileName).Select(l => Tuple.Create(l.Split('\t')[0], Int32.Parse(l.Split('\t')[1]))).ToList();
+			return LoadFrom(FilesList);
 		}
 
 		// spec -> isdir
@@ -64,12 +69,104 @@ namespace VssSvnConverter
 			;
 		}
 
+		public void FilterFiles(Options opts)
+		{
+			var files = LoadFrom(AllFilesList);
+
+			var isInclude = opts.IncludePredicate;
+
+			var excluded = files.Where(t => !isInclude(t.Item1)).ToList();
+			files = files.Where(t => isInclude(t.Item1)).ToList();
+
+			// write included & excluded
+			File.WriteAllLines(FilesList, files.Select(t => string.Format("{0}	{1}", t.Item1, t.Item2)).ToArray());
+			File.WriteAllLines(ExcludedFilesList, excluded.Select(t => string.Format("{0}	{1}", t.Item1, t.Item2)).ToArray());
+
+			// calc stats
+
+			// filter by prefix
+			if (opts.Prefix != null)
+			{
+				files = files
+					.Where(t => t.Item1.Replace('\\', '/').StartsWith(opts.Prefix, StringComparison.OrdinalIgnoreCase))
+					.ToList()
+				;
+			}
+
+			// filter by filter
+			if (opts.FilterRx != null)
+			{
+				files = files
+					.Where(t => opts.FilterRx.IsMatch(t.Item1.Replace('\\', '/')))
+					.ToList()
+				;
+			}
+
+			// build extensions map
+			Console.WriteLine("Files extensions:");
+			files
+				.Select(t => Path.GetExtension(t.Item1))
+				.Select(e => e.ToLowerInvariant())
+				.GroupBy(e => e)
+				.ToList()
+				.ForEach(g => Console.Write("{0}({1}) ", g.Key, g.Count()))
+			;
+			Console.WriteLine();
+			Console.WriteLine();
+
+			// dump extensions map
+			using (var map = File.CreateText(DataExtsFileName))
+			{
+				// overview
+				map.WriteLine("== Overview ==");
+				map.WriteLine("<all>    : Count: {0,5}, Size: {1,10:0.00} Kb", files.Count, files.Sum(f => (double)f.Item2) / 1024.0);
+
+				files
+					.Select(t => new { Ext = (Path.GetExtension(t.Item1) ?? "").ToLowerInvariant(), Size = t.Item2 })
+					.GroupBy(x => x.Ext)
+					.OrderBy(g => g.Sum(f => f.Size))
+					//					.OrderBy(g => g.Key)
+					.ToList()
+					.ForEach(g => map.WriteLine("{0,-9}: Count: {1,5}, Size: {2,10:0.00} Kb, Avg size: {3,7:0.00} Kb", g.Key, g.Count(), g.Sum(f => f.Size) / 1024.0, g.Sum(f => f.Size) / 1024.0 / g.Count()))
+				;
+
+				map.WriteLine();
+				map.WriteLine();
+				map.WriteLine("== Detailed ==");
+
+				files
+					.GroupBy(t => (Path.GetExtension(t.Item1) ?? "").ToLowerInvariant())
+					.ToList()
+					.ForEach(g =>
+					{
+						map.WriteLine("{0}({1}):", g.Key, g.Count());
+
+						foreach (var f in g.OrderByDescending(ff => ff.Item2))
+						{
+							map.WriteLine("{0,10} {1}", f.Item2, f.Item1);
+						}
+						map.WriteLine();
+					})
+				;
+			}
+
+			// dump files by size
+			using (var map = File.CreateText(DataSizesFileName))
+			{
+				files
+					.Select(t => new { Spec = t.Item1, Size = t.Item2 })
+					.OrderByDescending(inf => inf.Size)
+					.ToList()
+					.ForEach(inf => map.WriteLine("{0,10:0.0} KiB	{1}", inf.Size / 1024.0, inf.Spec))
+				;
+			}
+		}
+
 		void WalkItem(IVSSItem item)
 		{
 			if(item.Type == 1)
 			{
 				_files.Add(Tuple.Create(item.Spec, item.Size));
-				_log.WriteLine("+{0}", item.Spec);
 			}
 			else
 			{
@@ -81,12 +178,6 @@ namespace VssSvnConverter
 		{
 			foreach (IVSSItem item in items)
 			{
-				if(!_isInclude(item.Spec))
-				{
-					_log.WriteLine("-{0}", item.Spec);
-					continue;
-				}
-
 				WalkItem(item);
 			}
 		}

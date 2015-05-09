@@ -60,7 +60,6 @@
     <Compile Include="ext\VssItemExtensions.cs" />
     <Compile Include="ext\XRefMap.cs" />
     <Compile Include="FileRevisionLite.cs" />
-    <Compile Include="ImportListStatsBuilder.cs" />
     <Compile Include="LinksBuilder.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
