@@ -15,6 +15,9 @@ namespace vsslib
 		{
 			IVSSItem current = db.VSSItem["$/"];
 
+			if (item.Spec.Replace('\\', '/').TrimEnd("/".ToCharArray()) == "$")
+				return current;
+
 			foreach (var pathPart in item.Spec.Replace('\\', '/').TrimStart("$/".ToCharArray()).TrimEnd('/').Split('/'))
 			{
 				IVSSItem next = null;
