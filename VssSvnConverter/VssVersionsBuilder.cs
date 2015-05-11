@@ -89,7 +89,6 @@ namespace VssSvnConverter
 						}
 
 						Console.Write("[{0,5}/{1,5}] {2}", findex, files.Count, item.Spec);
-						var index = 0;
 
 						var itemRevisions = new List<FileRevision>();
 						foreach (IVSSVersion ver in item.Versions)
@@ -97,8 +96,7 @@ namespace VssSvnConverter
 							if (ver.Action.StartsWith("Labeled ") || ver.Action.StartsWith("Branched "))
 								continue;
 
-							if ((++index % 10) == 0)
-								Console.Write('.');
+							Console.Write('.');
 
 							if (!ver.Action.StartsWith("Checked in ") && !ver.Action.StartsWith("Created ") && !ver.Action.StartsWith("Archived ") && !ver.Action.StartsWith("Rollback to"))
 							{
