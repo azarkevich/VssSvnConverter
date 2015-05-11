@@ -88,15 +88,18 @@ namespace VssSvnConverter
 							continue;
 						}
 
-						Console.Write("[{0,5}/{1,5}] {2}", findex, files.Count, item.Spec);
+						Console.Write("[{0,5}/{1,5}] {2} ", findex, files.Count, item.Spec);
+
+						var rotationIndex = 0;
+						var rotationArray = @"|/-\|/-\".ToCharArray();
 
 						var itemRevisions = new List<FileRevision>();
 						foreach (IVSSVersion ver in item.Versions)
 						{
+							Console.Write("{0}\b", rotationArray[rotationIndex++ % rotationArray.Length]);
+
 							if (ver.Action.StartsWith("Labeled ") || ver.Action.StartsWith("Branched "))
 								continue;
-
-							Console.Write('.');
 
 							if (!ver.Action.StartsWith("Checked in ") && !ver.Action.StartsWith("Created ") && !ver.Action.StartsWith("Archived ") && !ver.Action.StartsWith("Rollback to"))
 							{
@@ -112,9 +115,11 @@ namespace VssSvnConverter
 
 							var fileVersionInfo = new FileRevision { FileSpec = item.Spec, At = ver.Date.ToUniversalTime(), Comment = ver.Comment, VssVersion = ver.VersionNumber, User = user, Physical = ver.VSSItem.Physical };
 							itemRevisions.Add(fileVersionInfo);
+
+							Console.Write('.');
 						}
 
-						Console.WriteLine();
+						Console.WriteLine(" ");
 
 						if (itemRevisions.Count > 0)
 						{
