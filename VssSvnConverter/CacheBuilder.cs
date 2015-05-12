@@ -150,6 +150,8 @@ namespace VssSvnConverter
 			if(!IsShouldBeProcessed(file.FileSpec))
 				return;
 
+			var sw = Stopwatch.StartNew();
+
 			var alreadyInCache = false;
 			if(_cache.GetFilePath(file.FileSpec, file.VssVersion) != null)
 			{
@@ -176,7 +178,7 @@ namespace VssSvnConverter
 
 			GetFromVss(file);
 
-			_log.WriteLine("Get: {0}@{1}", file.FileSpec, file.VssVersion);
+			_log.WriteLine("[{2:s} +{3,-7}ms] Get: {0}@{1}", file.FileSpec, file.VssVersion, DateTimeOffset.Now, sw.ElapsedMilliseconds);
 			Console.WriteLine("[{2}/{3}] Get: {0}@{1}", file.FileSpec, file.VssVersion, pos, count);
 		}
 		
