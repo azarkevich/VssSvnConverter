@@ -15,6 +15,9 @@ namespace VssSvnConverter
 	{
 		const string DataFileName = "4-cached-versions-list.txt";
 		const string LogFileName = "log-4-cached-versions-list.txt";
+		const string ErrorsFileName = "log-4-errors-list.txt";
+		const string OnlyLastVersionFileName = "log-4-only-last-versions-list.txt";
+		const string VersionsCountFileName = "log-4-versions-count-list.txt";
 
 		IVSSDatabase _db;
 		VssFileCache _cache;
@@ -31,6 +34,76 @@ namespace VssSvnConverter
 		public List<FileRevision> Load()
 		{
 			return new VssVersionsBuilder().Load(DataFileName);
+		}
+
+		public void BuildStats(List<FileRevision> list)
+		{
+			// dump info about versions count per file
+			using (var versionsCountLog = File.CreateText(VersionsCountFileName))
+			{
+				var listG = list
+					.GroupBy(f => f.FileSpec)
+					.Select(g => new { Count = g.Count(), Spec = g.Key })
+					.OrderByDescending(x => x.Count)
+					.ToList()
+				;
+
+				listG.ForEach(g => versionsCountLog.WriteLine("{0,6} {1}", g.Count, g.Spec));
+			}
+
+			using (var cache = new VssFileCache(_options.CacheDir, _options.DB.SrcSafeIni))
+			using (var errLog = File.CreateText(ErrorsFileName))
+			using (var onlyLastVersionsLog = File.CreateText(OnlyLastVersionFileName))
+			{
+				errLog.AutoFlush = true;
+				onlyLastVersionsLog.AutoFlush = true;
+
+				var cached = 0;
+				var errors = 0;
+				var onlyLastVersions = 0;
+				var notCached = 0;
+
+				var onlyLastVersionSpecs = new HashSet<string>();
+
+				foreach (var file in list)
+				{
+					if (cache.GetFilePath(file.FileSpec, file.VssVersion) != null)
+					{
+						cached++;
+					}
+					else
+					{
+						var err = cache.GetFileError(file.FileSpec, file.VssVersion);
+						if (!string.IsNullOrWhiteSpace(err))
+						{
+							if (err == "not-retained")
+							{
+								if (!onlyLastVersionSpecs.Contains(file.FileSpec))
+								{
+									onlyLastVersions++;
+									onlyLastVersionsLog.WriteLine("{0}", file.FileSpec);
+									onlyLastVersionSpecs.Add(file.FileSpec);
+								}
+							}
+							else
+							{
+								errors++;
+								errLog.WriteLine("{0}@{1}\n\t{2}", file.FileSpec, file.VssVersion, err);
+							}
+							cached++;
+						}
+						else
+						{
+							notCached++;
+						}
+					}
+				}
+
+				Console.WriteLine("Cached: {0} (Errors: {1})  Not Cached: {2}", cached, errors, notCached);
+				Console.WriteLine("Only Last Version: {0}", onlyLastVersions);
+				Console.WriteLine("Not Cached: {0:0.00}%", 100.0 * notCached / list.Count);
+				Console.WriteLine();
+			}
 		}
 
 		public void Build(List<FileRevision> versions)

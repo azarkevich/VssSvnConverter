@@ -117,6 +117,11 @@ namespace VssSvnConverter
 					Console.WriteLine("Next: build-commits");
 					break;
 
+				case "build-cache-stats":
+					new CacheBuilder(_opts).BuildStats(new VssVersionsBuilder().Load());
+					Console.WriteLine("Next: build-commits");
+					break;
+
 				case "build-commits":
 					new CommitsBuilder().Build(_opts, new CacheBuilder(_opts).Load());
 					Console.WriteLine("Next: build-wc");
