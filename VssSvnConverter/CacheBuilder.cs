@@ -36,6 +36,14 @@ namespace VssSvnConverter
 			return new VssVersionsBuilder().Load(DataFileName);
 		}
 
+		public void RemoveCachedErrors()
+		{
+			using (_cache = new VssFileCache(_options.CacheDir, _options.DB.SrcSafeIni))
+			{
+				_cache.DropAllErrors();
+			}
+		}
+
 		public void BuildStats(List<FileRevision> list)
 		{
 			// dump info about versions count per file
@@ -192,11 +200,10 @@ namespace VssSvnConverter
 					for (var j = 0; j < fileGroups.Count; j++)
 					{
 						var fileGroup = fileGroups[j];
-						var groupItems = fileGroup.ToList();
 
-						Console.WriteLine("[{0}/{1}] Get: {2}", j, fileGroups.Count, fileGroup.Key);
+						Console.WriteLine("[{0}/{1}] Get: {2} x", j, fileGroups.Count, fileGroup.Key);
 
-						groupItems
+						fileGroup
 							.AsParallel()
 							.ForAll(Process)
 						;

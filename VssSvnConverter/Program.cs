@@ -122,6 +122,11 @@ namespace VssSvnConverter
 					Console.WriteLine("Next: build-commits");
 					break;
 
+				case "build-cache-clear-errors":
+					new CacheBuilder(_opts).RemoveCachedErrors();
+					Console.WriteLine("Next: build-commits");
+					break;
+					
 				case "build-commits":
 					new CommitsBuilder().Build(_opts, new CacheBuilder(_opts).Load());
 					Console.WriteLine("Next: build-wc");

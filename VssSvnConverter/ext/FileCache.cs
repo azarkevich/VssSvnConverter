@@ -33,8 +33,8 @@ namespace vcslib
 
 		static readonly CacheEntry EmptyCacheEntry = new CacheEntry(null, null, null, null);
 
-		readonly FileStream _indexStream;
-		readonly StreamWriter _indexWriter;
+		FileStream _indexStream;
+		StreamWriter _indexWriter;
 		readonly Dictionary<string, CacheEntry> _cacheIndex = new Dictionary<string, CacheEntry>();
 		int _indexEntriesCount;
 		readonly string _cacheBaseDir;
@@ -45,19 +45,28 @@ namespace vcslib
 		{
 			_cacheBaseDir = baseDir;
 
-			if(!Directory.Exists(baseDir))
-				Directory.CreateDirectory(baseDir);
+			if (!Directory.Exists(_cacheBaseDir))
+				Directory.CreateDirectory(_cacheBaseDir);
 
-			var indexFile = Path.Combine(baseDir, ".index");
+			Init();
+		}
+
+		private void Init()
+		{
+			var indexFile = Path.Combine(_cacheBaseDir, ".index");
+
 			_indexStream = new FileStream(indexFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
 
 			ReadIndex();
 
-			_indexWriter = new StreamWriter(_indexStream, Encoding.UTF8) { AutoFlush = true };
+			_indexWriter = new StreamWriter(_indexStream, Encoding.UTF8) {AutoFlush = true};
 		}
 
 		void ReadIndex()
 		{
+			_indexEntriesCount = 0;
+			_cacheIndex.Clear();
+
 			var reader = new StreamReader(_indexStream, Encoding.UTF8);
 			string line;
 			while ((line = reader.ReadLine()) != null)
@@ -87,8 +96,50 @@ namespace vcslib
 
 		void WriteIndexEntry(CacheEntry ce)
 		{
-			_indexWriter.WriteLine("{0}	{1}	{2}	{3}", ce.Key, ce.ContentPath, ce.Sha1Hash, ce.Notes);
+			AddCacheEntry(_indexWriter, ce);
 			_indexEntriesCount++;
+		}
+
+		static void AddCacheEntry(StreamWriter sw, CacheEntry ce)
+		{
+			sw.WriteLine("{0}	{1}	{2}	{3}", ce.Key, ce.ContentPath, ce.Sha1Hash, ce.Notes);
+		}
+
+		public IEnumerable<CacheEntry> AllEntries()
+		{
+			return _cacheIndex.Values;
+		}
+
+		public void RemoveEntries(IEnumerable<CacheEntry> forRemove)
+		{
+			var newIndexFile = Path.Combine(_cacheBaseDir, ".index.new");
+			var indexFile = Path.Combine(_cacheBaseDir, ".index");
+			var oldIndexFile = Path.Combine(_cacheBaseDir, ".index.old");
+			if (File.Exists(oldIndexFile))
+				File.Delete(oldIndexFile);
+			if (File.Exists(newIndexFile))
+				File.Delete(newIndexFile);
+
+			foreach (var ce in forRemove)
+			{
+				_cacheIndex.Remove(ce.Key);
+			}
+
+			// rewrite index
+			using(var sw = new StreamWriter(new FileStream(newIndexFile, FileMode.Create, FileAccess.Write, FileShare.Read), Encoding.UTF8))
+			{
+				foreach (var cacheEntry in _cacheIndex.Values)
+				{
+					AddCacheEntry(sw, cacheEntry);
+				}
+			}
+
+			_indexStream.Close();
+
+			File.Move(indexFile, oldIndexFile);
+			File.Move(newIndexFile, indexFile);
+
+			Init();
 		}
 
 		public void AddNotes(string key, string notes)

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using vcslib;
 
 namespace vsslib
@@ -49,6 +51,21 @@ namespace vsslib
 		public FileCache.CacheEntry GetFileInfo(string spec, int ver)
 		{
 			return _cache.GetFileInfo(MakeKey(spec, ver));
+		}
+
+		public void DropAllErrors()
+		{
+			var forRemove = _cache
+				.AllEntries()
+				.Where(e => e.Notes != null && e.Notes != "not-retained")
+				.ToList()
+			;
+			_cache.RemoveEntries(forRemove);
+		}
+
+		public void RemoveEntries(IEnumerable<FileCache.CacheEntry> entries)
+		{
+			_cache.RemoveEntries(entries);
 		}
 
 		string MakeKey(string spec, int ver)
