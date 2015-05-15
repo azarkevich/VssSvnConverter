@@ -153,13 +153,18 @@ namespace VssSvnConverter
 				if (!_options.Force)
 				{
 					Console.WriteLine("Skip already cached versions...");
+
+					var cached = 0;
+					var notRetained = 0;
+					var errors = 0;
+
 					var tmp = versions.ToList();
 					versions.Clear();
 					foreach (var file in tmp)
 					{
 						if (_cache.GetFilePath(file.FileSpec, file.VssVersion) != null)
 						{
-							Console.Write("c");
+							cached++;
 							continue;
 						}
 
@@ -168,15 +173,20 @@ namespace VssSvnConverter
 							var err = _cache.GetFileError(file.FileSpec, file.VssVersion);
 
 							if (err == "not-retained")
-								Console.Write("W");
+								notRetained++;
 							else
-								Console.Write("E");
+								errors++;
 
 							continue;
 						}
 
 						versions.Add(file);
 					}
+
+					Console.WriteLine("Cached(good): {0}", cached);
+					Console.WriteLine("Cached(errors): {0}", errors);
+					Console.WriteLine("Cached(not retained version): {0}", notRetained);
+					Console.WriteLine("Not Cached: {0}", versions.Count);
 				}
 				Console.WriteLine();
 
@@ -201,12 +211,14 @@ namespace VssSvnConverter
 					{
 						var fileGroup = fileGroups[j];
 
-						Console.WriteLine("[{0}/{1}] Get: {2} x", j, fileGroups.Count, fileGroup.Key);
+						Console.Write("[{0}/{1}] Get: {3,5} x {2}", j, fileGroups.Count, fileGroup.Key, fileGroup.Count());
 
 						fileGroup
 							.AsParallel()
 							.ForAll(Process)
 						;
+
+						Console.WriteLine();
 					}
 				}
 
@@ -234,6 +246,7 @@ namespace VssSvnConverter
 			lock (_log)
 			{
 				_log.WriteLine("[{2:s} +{3,-7}ms] Get: {0}@{1}", file.FileSpec, file.VssVersion, DateTimeOffset.Now, sw.ElapsedMilliseconds);
+				Console.Write('.');
 			}
 		}
 

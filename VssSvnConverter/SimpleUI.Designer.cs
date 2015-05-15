@@ -86,10 +86,10 @@
 			// 
 			this.button3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.button3.Location = new System.Drawing.Point(12, 99);
+			this.button3.Location = new System.Drawing.Point(53, 99);
 			this.button3.Name = "button3";
 			this.button3.Size = new System.Drawing.Size(106, 23);
-			this.button3.TabIndex = 4;
+			this.button3.TabIndex = 5;
 			this.button3.Tag = "build-cache";
 			this.button3.Text = "4. Build cache";
 			this.button3.UseVisualStyleBackColor = true;
@@ -102,7 +102,7 @@
 			this.button4.Location = new System.Drawing.Point(12, 128);
 			this.button4.Name = "button4";
 			this.button4.Size = new System.Drawing.Size(188, 23);
-			this.button4.TabIndex = 6;
+			this.button4.TabIndex = 7;
 			this.button4.Tag = "build-commits";
 			this.button4.Text = "5. Build commits";
 			this.button4.UseVisualStyleBackColor = true;
@@ -115,7 +115,7 @@
 			this.button5.Location = new System.Drawing.Point(12, 157);
 			this.button5.Name = "button5";
 			this.button5.Size = new System.Drawing.Size(188, 23);
-			this.button5.TabIndex = 7;
+			this.button5.TabIndex = 8;
 			this.button5.Tag = "build-wc";
 			this.button5.Text = "6. Build wc";
 			this.button5.UseVisualStyleBackColor = true;
@@ -128,7 +128,7 @@
 			this.button6.Location = new System.Drawing.Point(12, 186);
 			this.button6.Name = "button6";
 			this.button6.Size = new System.Drawing.Size(188, 23);
-			this.button6.TabIndex = 8;
+			this.button6.TabIndex = 9;
 			this.button6.Tag = "import";
 			this.button6.Text = "7. Import";
 			this.button6.UseVisualStyleBackColor = true;
@@ -141,7 +141,7 @@
 			this.button7.Location = new System.Drawing.Point(12, 215);
 			this.button7.Name = "button7";
 			this.button7.Size = new System.Drawing.Size(188, 23);
-			this.button7.TabIndex = 9;
+			this.button7.TabIndex = 10;
 			this.button7.Tag = "build-scripts";
 			this.button7.Text = "8. Build scripts";
 			this.button7.UseVisualStyleBackColor = true;
@@ -164,10 +164,10 @@
 			// 
 			this.button9.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.button9.Image = global::VssSvnConverter.Properties.Resources.refresh_small;
-			this.button9.Location = new System.Drawing.Point(124, 99);
+			this.button9.Location = new System.Drawing.Point(165, 99);
 			this.button9.Name = "button9";
 			this.button9.Size = new System.Drawing.Size(35, 23);
-			this.button9.TabIndex = 5;
+			this.button9.TabIndex = 6;
 			this.button9.Tag = "build-cache-stats";
 			this.toolTip1.SetToolTip(this.button9, "Recalc cached statistic");
 			this.button9.UseVisualStyleBackColor = true;
@@ -175,11 +175,10 @@
 			// 
 			// button10
 			// 
-			this.button10.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.button10.Location = new System.Drawing.Point(165, 99);
+			this.button10.Location = new System.Drawing.Point(12, 99);
 			this.button10.Name = "button10";
 			this.button10.Size = new System.Drawing.Size(35, 23);
-			this.button10.TabIndex = 10;
+			this.button10.TabIndex = 4;
 			this.button10.Tag = "build-cache-clear-errors";
 			this.button10.Text = "X";
 			this.toolTip1.SetToolTip(this.button10, "Remove errors from cache");
