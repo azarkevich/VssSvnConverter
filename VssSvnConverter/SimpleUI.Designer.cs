@@ -180,7 +180,7 @@
 			this.button10.Size = new System.Drawing.Size(35, 23);
 			this.button10.TabIndex = 4;
 			this.button10.Tag = "build-cache-clear-errors";
-			this.button10.Text = "X";
+			this.button10.Text = "CE";
 			this.toolTip1.SetToolTip(this.button10, "Remove errors from cache");
 			this.button10.UseVisualStyleBackColor = true;
 			this.button10.Click += new System.EventHandler(this.buildList_Click);

@@ -75,6 +75,9 @@ namespace VssSvnConverter
 			using (var errLog = File.CreateText(ErrorsFileName))
 			using (var onlyLastVersionsLog = File.CreateText(OnlyLastVersionFileName))
 			{
+				errLog.AutoFlush = true;
+				onlyLastVersionsLog.AutoFlush = true;
+
 				// undone list
 				using (var log = File.CreateText(UndoneVersionsCountFileName))
 				{
@@ -88,9 +91,6 @@ namespace VssSvnConverter
 
 					listG.ForEach(g => log.WriteLine("{0,6} {1}", g.Count, g.Spec));
 				}
-
-				errLog.AutoFlush = true;
-				onlyLastVersionsLog.AutoFlush = true;
 
 				var cached = 0;
 				var errors = 0;
@@ -145,7 +145,7 @@ namespace VssSvnConverter
 			var sw = Stopwatch.StartNew();
 
 			_db = _options.DB;
-			var originalVersions = versions;
+			var originalVersions = versions.ToList();
 
 			using(_cache = new VssFileCache(_options.CacheDir, _db.SrcSafeIni))
 			{
@@ -158,9 +158,8 @@ namespace VssSvnConverter
 					var notRetained = 0;
 					var errors = 0;
 
-					var tmp = versions.ToList();
 					versions.Clear();
-					foreach (var file in tmp)
+					foreach (var file in originalVersions)
 					{
 						if (_cache.GetFilePath(file.FileSpec, file.VssVersion) != null)
 						{
