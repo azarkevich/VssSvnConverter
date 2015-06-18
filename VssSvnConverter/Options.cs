@@ -128,6 +128,21 @@ namespace VssSvnConverter
 				.ToDictionary(a => a[0].ToLowerInvariant(), a => a[1])
 			;
 
+			foreach (var mappingFile in Config["user-mapping-file"])
+			{
+				foreach (var line in File.ReadAllLines(mappingFile))
+				{
+					var arr = line.Split('\t');
+					if (arr.Length == 0)
+						continue;
+
+					if(arr.Length != 2)
+						throw new Exception("Invalid user mapping file: " + mappingFile);
+
+					UserMappings[arr[0].ToLowerInvariant()] = arr[1];
+				}
+			}
+
 			SvnRepo = Path.Combine(Environment.CurrentDirectory, "_repository");
 			SvnRepoUri = new Uri("file:///" + SvnRepo.Replace('\\', '/'));
 
