@@ -371,7 +371,7 @@ namespace VssSvnConverter
 				var dstFileName = Path.GetFileName(file.FileSpec.TrimStart('$', '/', '\\'));
 
 				var tempDir = Path.Combine(Environment.CurrentDirectory, "vss-temp");
-				var path = Path.Combine(tempDir, DateTimeOffset.UtcNow.Ticks + "-" + dstFileName);
+				var path = Path.Combine(tempDir, Guid.NewGuid().ToString("N") + "-" + dstFileName);
 
 				try
 				{
