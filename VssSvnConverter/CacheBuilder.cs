@@ -212,10 +212,12 @@ namespace VssSvnConverter
 
 						Console.Write("[{0}/{1}] Get: {3,5} x {2}", j, fileGroups.Count, fileGroup.Key, fileGroup.Count());
 
-						fileGroup
-							.AsParallel()
-							.ForAll(Process)
-						;
+						var pq = fileGroup.AsParallel();
+						
+						if(_options.CacheParallelMaxDegree > 0)
+							pq = pq.WithDegreeOfParallelism(_options.CacheParallelMaxDegree);
+						
+						pq.ForAll(Process);
 
 						Console.WriteLine();
 					}
