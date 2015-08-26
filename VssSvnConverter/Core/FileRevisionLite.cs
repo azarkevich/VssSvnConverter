@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace VssSvnConverter
+namespace VssSvnConverter.Core
 {
 	class FileRevisionLite
 	{

@@ -53,15 +53,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CacheBuilder.cs" />
-    <Compile Include="Commit.cs" />
+    <Compile Include="Core\Commit.cs" />
+    <Compile Include="Core\ExecHelper.cs" />
+    <Compile Include="Core\GitExecHelper.cs" />
     <Compile Include="ext\FileCache.cs" />
     <Compile Include="ext\SSExeHelper.cs" />
     <Compile Include="ext\VssFileCache.cs" />
     <Compile Include="ext\VssItemExtensions.cs" />
     <Compile Include="ext\XRefMap.cs" />
-    <Compile Include="FileRevisionLite.cs" />
+    <Compile Include="Core\FileRevisionLite.cs" />
+    <Compile Include="Core\GitDriver.cs" />
+    <Compile Include="Core\IDestinationDriver.cs" />
     <Compile Include="LinksBuilder.cs" />
-    <Compile Include="Options.cs" />
+    <Compile Include="Core\Options.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -74,6 +78,7 @@
     <Compile Include="SimpleUI.Designer.cs">
       <DependentUpon>SimpleUI.cs</DependentUpon>
     </Compile>
+    <Compile Include="Core\SvnDriver.cs" />
     <Compile Include="VssVersionsBuilder.cs" />
     <Compile Include="WcBuilder.cs" />
     <Compile Include="CommitsBuilder.cs" />
@@ -81,7 +86,7 @@
     <Compile Include="ImportListBuilder.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WindowsImpersonation.cs" />
+    <Compile Include="Core\WindowsImpersonation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">

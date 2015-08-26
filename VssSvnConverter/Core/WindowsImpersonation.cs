@@ -6,7 +6,7 @@ using System.Security.Permissions;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
 
-namespace VssSvnConverter
+namespace VssSvnConverter.Core
 {
 	public class WindowsImpersonation
 	{

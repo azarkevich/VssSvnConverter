@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using SourceSafeTypeLib;
 using vsslib;
 using System.Text.RegularExpressions;
+using VssSvnConverter.Core;
 
 namespace VssSvnConverter
 {

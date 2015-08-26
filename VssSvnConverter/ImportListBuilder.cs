@@ -4,6 +4,7 @@ using System.Linq;
 using System.IO;
 using SourceSafeTypeLib;
 using vsslib;
+using VssSvnConverter.Core;
 
 namespace VssSvnConverter
 {

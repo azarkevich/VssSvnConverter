@@ -3,6 +3,7 @@ using System.Linq;
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
+using VssSvnConverter.Core;
 
 namespace VssSvnConverter
 {

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Mime;
 using SourceSafeTypeLib;
 using vcslib;
+using VssSvnConverter.Core;
 
 namespace VssSvnConverter
 {

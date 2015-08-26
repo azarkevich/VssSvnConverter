@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Diagnostics;
 using SourceSafeTypeLib;
 using vsslib;
+using VssSvnConverter.Core;
 
 namespace VssSvnConverter
 {

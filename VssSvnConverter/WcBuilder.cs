@@ -1,5 +1,6 @@
 ﻿using System.IO;
-using SharpSvn;
+using System;
+using VssSvnConverter.Core;
 
 namespace VssSvnConverter
 {
@@ -9,36 +10,20 @@ namespace VssSvnConverter
 		{
 			File.WriteAllText(Importer.DataFileName, "0\n");
 
-			if(Directory.Exists("svn-wc"))
+			if(opts.UseGit)
 			{
-				Directory.Delete("svn-wc", true);
-			}
-			
-			using (var svn = new SvnRepositoryClient())
-			{
-				if(Directory.Exists(opts.SvnRepo))
-					svn.DeleteRepository(opts.SvnRepo);
-
-				svn.CreateRepository(opts.SvnRepo);
-			}
-
-			// create hooks
-			File.WriteAllText(Path.Combine(opts.SvnRepo, "hooks/post-revprop-change.bat"), "exit 0");
-			File.WriteAllText(Path.Combine(opts.SvnRepo, "hooks/pre-revprop-change.bat"), "exit 0");
-
-			using (var svn = new SvnClient())
-			{
-				svn.CheckOut(new SvnUriTarget(opts.SvnRepoUri), "svn-wc");
-
-				foreach (var fse in Directory.EnumerateFileSystemEntries("svn-wc"))
+				if (opts.GitRepoInit)
 				{
-					if(Path.GetFileName(fse).ToLowerInvariant() == ".svn")
-						continue;
-
-					svn.Add(fse, SvnDepth.Infinity);
+					GitDriver.Create(opts.GitExe, opts.RepoDir);
 				}
-
-				svn.Commit("svn-wc", new SvnCommitArgs { LogMessage = "PreCreate revision"});
+				else
+				{
+					//MessageBox.Show("Can't initialize git repo. git-init-repo to true in config for enable initialization");
+				}
+			}
+			else
+			{
+				SvnDriver.Create(opts.RepoDir, Path.Combine(Environment.CurrentDirectory, "svn-wc"));
 			}
 		}
 	}

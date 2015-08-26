@@ -6,6 +6,7 @@ using System.Net;
 using vcslib;
 using System;
 using System.Diagnostics;
+using VssSvnConverter.Core;
 
 namespace VssSvnConverter
 {

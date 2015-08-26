@@ -4,13 +4,11 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Web.UI;
-using SharpSvn;
 using System.IO;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using SourceSafeTypeLib;
 using vsslib;
+using VssSvnConverter.Core;
 
 namespace VssSvnConverter
 {
@@ -20,7 +18,6 @@ namespace VssSvnConverter
 		public const string LogFileName = "log-6-import.txt";
 
 		IVSSDatabase _db;
-		Uri _svnUri;
 		VssFileCache _cache;
 
 		Options _opts;
@@ -40,7 +37,6 @@ namespace VssSvnConverter
 		public void Import(Options opts, List<Commit> commits)
 		{
 			_db = opts.DB;
-			_svnUri = opts.SvnRepoUri;
 			_opts = opts;
 
 			_unimportants = opts
@@ -109,51 +105,44 @@ namespace VssSvnConverter
 			using(_cache = new VssFileCache(opts.CacheDir, _db.SrcSafeIni))
 			using(var log = File.CreateText(LogFileName))
 			{
+				log.AutoFlush = true;
+
 				try
 				{
-					using (var svn = new SvnClient())
+					IDestinationDriver driver;
+					if (opts.UseGit)
 					{
-						Collection<SvnStatusEventArgs> statuses;
-						if(!svn.GetStatus("svn-wc", out statuses))
-							throw new ApplicationException("SvnClient.GetStatus returns false");
+						driver = new GitDriver(opts.GitExe, opts.RepoDir, opts.GitDefaultAuthorDomain, log);
+					}
+					else
+					{
+						driver = new SvnDriver(Path.Combine(Environment.CurrentDirectory, "svn-wc"), log);
+					}
 
-						if (statuses.Count > 0)
-							throw new ApplicationException("SVN working copy (svn-wc) has files/directories in non-normal state. Make reverts/remove unversioned files and try again with stage import");
+					for (var i = fromCommit; i < commits.Count; i++)
+					{
+						var c = commits[i];
+		
+						Console.WriteLine("[{2,6}/{3}] Start import commit: {0}, by {1}", c.At, c.User, i, commits.Count);
 
-						for (var i = fromCommit; i < commits.Count; i++)
+						driver.StartRevision();
+
+						LoadRevision(driver, c, log);
+
+						File.AppendAllText(DataFileName, i + "\n");
+
+						var comment = c.Comment;
+						if(opts.EnhanceComments)
 						{
-							var c = commits[i];
-							Console.WriteLine("[{2,6}/{3}] Start import commit: {0}, by {1}", c.At, c.User, i, commits.Count);
-
-							var cr = LoadRevision(svn, c, log);
-
-							File.AppendAllText(DataFileName, i + "\n");
-
-							if (cr == null)
-							{
-								Console.WriteLine("	Nothing to commit. Seems this revision was already added or contains only unimportant chnages ?");
-								continue;
-							}
-
-							try
-							{
-								var revision = new SvnRevision(cr.Revision);
-
-								svn.SetRevisionProperty(_svnUri, revision, "svn:author", commits[i].User);
-								svn.SetRevisionProperty(_svnUri, revision, "svn:log", c.Comment);
-								svn.SetRevisionProperty(_svnUri, revision, "svn:date", commits[i].At.ToString("o"));
-							}
-							catch (Exception ex)
-							{
-								log.WriteLine("Change props error: {0}", ex);
-							}
+							comment = string.Format("{{{0} at {1}}}: ", commits[i].User, commits[i].At.ToString("g")) + comment;
 						}
+
+						driver.CommitRevision(commits[i].User, comment, commits[i].At);
 					}
 				}
 				catch (Exception ex)
 				{
 					log.WriteLine(ex.ToString());
-					log.Flush();
 					throw;
 				}
 			}
@@ -164,7 +153,7 @@ namespace VssSvnConverter
 
 		bool _useHardLink = true;
 
-		SvnCommitResult LoadRevision(SvnClient svn, Commit commit, StreamWriter log)
+		void LoadRevision(IDestinationDriver driver, Commit commit, StreamWriter log)
 		{
 			foreach (var file in commit.Files)
 			{
@@ -185,12 +174,12 @@ namespace VssSvnConverter
 
 				log.WriteLine("Load: {0} -> {1}", file, relPath);
 
-				var dstPath = Path.Combine(Path.Combine(Environment.CurrentDirectory, "svn-wc"), relPath);
+				var dstPath = Path.Combine(driver.WorkingCopy, relPath);
 
 				var dstDir = Path.GetDirectoryName(dstPath);
 				Debug.Assert(dstDir != null);
 				if(!Directory.Exists(dstDir))
-					svn.CreateDirectory(dstDir, new SvnCreateDirectoryArgs { CreateParents = true });
+					driver.AddDirectory(dstDir);
 
 				var addToSvn = !File.Exists(dstPath);
 
@@ -213,7 +202,7 @@ namespace VssSvnConverter
 				}
 
 				if(addToSvn)
-					svn.Add(dstPath);
+					driver.AddFile(dstPath);
 
 				// file can be modified in place if it is not hardlink
 				var canBeModifiedInplace = !_useHardLink;
@@ -237,14 +226,8 @@ namespace VssSvnConverter
 				DoCensoring(dstPath, relPath, prepareForModifyInplace);
 
 				if (!addToSvn && _unimportants.Count > 0)
-					RevertUnimportant(svn, dstPath, relPath, prepareForModifyInplace);
+					RevertUnimportant(driver, dstPath, relPath, prepareForModifyInplace);
 			}
-
-			var commitArgs = new SvnCommitArgs { LogMessage = "author: " + commit.User + "\n" + commit.Comment };
-
-			SvnCommitResult cr;
-			svn.Commit("svn-wc", commitArgs, out cr);
-			return cr;
 		}
 
 		void DoCensoring(string dstPath, string relPath, Action<bool> prepareFileForModifications)
@@ -285,7 +268,7 @@ namespace VssSvnConverter
 			Console.WriteLine("	Censored: {0}", relPath);
 		}
 
-		void RevertUnimportant(SvnClient svn, string path, string relPath, Action<bool> prepareFileForModifications)
+		void RevertUnimportant(IDestinationDriver driver, string path, string relPath, Action<bool> prepareFileForModifications)
 		{
 			var relNorm = relPath.ToLowerInvariant().Replace('\\', '/').Trim('/');
 
@@ -294,19 +277,9 @@ namespace VssSvnConverter
 			if (unimportantPatterns.Length == 0)
 				return;
 
-			var ms = new MemoryStream();
-			svn.Diff(
-				new SvnPathTarget(path, SvnRevisionType.Base),
-				new SvnPathTarget(path, SvnRevisionType.Working), new SvnDiffArgs {NoProperties = true},
-				ms
-			);
+			var diff = driver.GetDiff(path);
 
-			if (ms.Length == 0)
-				return;
-
-			ms.Position = 0;
-			var diffLines = new StreamReader(ms, Encoding.UTF8)
-				.ReadToEnd()
+			var diffLines = diff
 				.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
 				// skip header up to @@ marker
 				.SkipWhile(s => !s.StartsWith("@@"))
@@ -321,7 +294,7 @@ namespace VssSvnConverter
 				prepareFileForModifications(false);
 
 				// revert all unimportant changes
-				svn.Revert(path);
+				driver.Revert(path);
 
 				Console.WriteLine("	Skip unimportant: {0}", relPath);
 			}
