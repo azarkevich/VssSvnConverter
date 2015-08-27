@@ -1,11 +1,11 @@
 VssSvnConverter
 ===============
 
-Yet another converter of Visual Source Safe database to Subversion repository
+Yet another converter of Visual Source Safe database to Subversion / Git repository
 
 Why?
 
-This converter was written and tested during gradual conversion of 18GB VSS repository to Subversion.
+This converter was written and tested during gradual conversion of 18GB VSS repository to Subversion and later to TFS hrough GIT.
 No one other tool(which I try), such as Vss2Svn, VssMigrate was unable do this work. It is too big, to complex and corrupted.
 
 So, this converter has advantages and disadvantages.
@@ -21,7 +21,7 @@ This tool require setup in config files and has _very_ minimalistic GUI.
 
 But, also took has next advantages:
 
-* If you have big (really BIG) VSS repository, it is possible convert only part of it. Then next piece, next... We continue such continuous conversion already 1.5 years.
+* If you have big (really BIG) VSS repository, it is possible convert only part of it. Then next piece, next... We continue such continuous conversion already for 2 years.
 * Tool has rich filtration rules for prevent conversion unnecessary files in destination repository
 * Tool use COM interface to VSS database, but in case of error also try CLI (ss.exe). Some time CLI interface work correct, while COM - failed.
 * For several conversion tries used file cache for speedup access to VSS
@@ -45,3 +45,8 @@ After conversion import data to production repository in special directory for i
 svnadmin dump d:\VssSvnConverter\_repository | svnadmin load d:\production-svn-repo\ --parent-dir /import
 ```
 And then use standard SVN tools for move imported stuff from /import to any correct place in repository.
+
+Git support
+-----------
+It appears that we was forced to use TFS. BUt still bunch of sources are in VSS, so I update this utility for support both Subversion and Git.
+Through Git it become possible to push changes (with help of git-tfs) to TFS
