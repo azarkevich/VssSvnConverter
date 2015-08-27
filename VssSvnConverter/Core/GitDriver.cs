@@ -38,7 +38,7 @@ namespace VssSvnConverter.Core
 
 		public void AddFile(string file)
 		{
-			_gitHelper.Exec(string.Format("add -- \"{0}\"", file));
+			_gitHelper.Exec(string.Format("add -f -- \"{0}\"", file));
 		}
 
 		public string GetDiff(string file)

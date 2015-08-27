@@ -109,11 +109,6 @@ namespace VssSvnConverter
 
 							var user = ver.Username.ToLowerInvariant();
 
-							// map user name
-							string u;
-							if(opts.UserMappings.TryGetValue(user, out u))
-								user = u;
-
 							var fileVersionInfo = new FileRevision { FileSpec = item.Spec, At = ver.Date.ToUniversalTime(), Comment = ver.Comment, VssVersion = ver.VersionNumber, User = user, Physical = ver.VSSItem.Physical };
 							itemRevisions.Add(fileVersionInfo);
 

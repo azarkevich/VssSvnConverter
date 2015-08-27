@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -38,12 +39,12 @@ namespace VssSvnConverter.Core
 
 		// build commits
 		public TimeSpan SilentSpan;
-
 		public bool MergeChanges;
-
 		public bool OverlapCommits;
-
-		public Dictionary<string, string> UserMappings;
+		public bool CommentAddVssFilesInfo;
+		public bool CommentAddUserTime;
+		public bool UserMappingStrict;
+		public bool CommentAddCommitNumber;
 
 		// import
 		public string RepoDir;
@@ -51,8 +52,6 @@ namespace VssSvnConverter.Core
 		public bool GitRepoInit;
 		public string GitExe;
 		public string GitDefaultAuthorDomain;
-
-		public bool EnhanceComments;
 
 		// directories, which will be created as revision 1, before first import
 		public string[] PreCreateDirs;
@@ -130,28 +129,25 @@ namespace VssSvnConverter.Core
 				.First()
 			;
 
-			UserMappings = Config["user-mapping"]
-				.Select(m => m.Split(':'))
-				.Where(a => a.Length == 2)
-				.ToDictionary(a => a[0].ToLowerInvariant(), a => a[1])
+			UserMappingStrict = Config["user-mapping-strict"]
+				.DefaultIfEmpty("false")
+				.Select(bool.Parse)
+				.First()
 			;
 
-			foreach (var mappingFile in Config["user-mapping-file"])
-			{
-				foreach (var line in File.ReadAllLines(mappingFile))
-				{
-					var arr = line.Split('\t');
-					if (arr.Length == 0)
-						continue;
+			CommentAddVssFilesInfo = Config["comment-add-vss-files-info"]
+				.DefaultIfEmpty("false")
+				.Select(bool.Parse)
+				.First()
+			;
 
-					if(arr.Length != 2)
-						throw new Exception("Invalid user mapping file: " + mappingFile);
+			CommentAddUserTime = Config["comment-add-user-time"]
+				.DefaultIfEmpty("false")
+				.Select(bool.Parse)
+				.First()
+			;
 
-					UserMappings[arr[0].ToLowerInvariant()] = arr[1];
-				}
-			}
-
-			EnhanceComments = Config["enhance-comments"]
+			CommentAddCommitNumber = Config["comment-add-commit-number"]
 				.DefaultIfEmpty("false")
 				.Select(bool.Parse)
 				.First()

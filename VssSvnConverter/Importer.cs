@@ -129,15 +129,10 @@ namespace VssSvnConverter
 
 						LoadRevision(driver, c, log);
 
+						driver.CommitRevision(commits[i].User, c.Comment, commits[i].At);
+
+						// OK
 						File.AppendAllText(DataFileName, i + "\n");
-
-						var comment = c.Comment;
-						if(opts.EnhanceComments)
-						{
-							comment = string.Format("{{{0} at {1}}}: ", commits[i].User, commits[i].At.ToString("g")) + comment;
-						}
-
-						driver.CommitRevision(commits[i].User, comment, commits[i].At);
 					}
 				}
 				catch (Exception ex)

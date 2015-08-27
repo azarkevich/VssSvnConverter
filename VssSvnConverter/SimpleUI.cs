@@ -20,9 +20,20 @@ namespace VssSvnConverter
 			Controls.Cast<Control>().ToList().ForEach(c => c.Enabled = false);
 
 			new Thread(() => {
-				Program.ProcessStage(btn.Tag as string);
+				Color color;
+				try
+				{
+					Program.ProcessStage(btn.Tag as string);
+					color = Color.PaleGreen;
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine("ERROR: {0}", ex.Message);
+					color = Color.LightCoral;
+				}
+
 				Action action = () => {
-					btn.BackColor = Color.PaleGreen;
+					btn.BackColor = color;
 					Controls.Cast<Control>().ToList().ForEach(c => c.Enabled = true);
 				};
 				Invoke(action);
