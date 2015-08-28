@@ -148,8 +148,11 @@ namespace VssSvnConverter
 						notMappedL.Add(rev.User);
 					}
 				}
-				else if (author != "*")
+				else if (author != "*" && String.Compare(author, rev.User, StringComparison.OrdinalIgnoreCase) != 0)
+				{
+					rev.OriginalUser = rev.User;
 					rev.User = author;
+				}
 			}
 
 			if (_opts.UserMappingStrict && notMapped.Count > 0)
@@ -250,9 +253,12 @@ namespace VssSvnConverter
 						commitComments[cmt] = comments = new List<string>();
 					}
 
-					var comment = rev.Comment.Trim();
-					if (!comments.Contains(comment))
-						comments.Add(comment);
+					if(!string.IsNullOrWhiteSpace(rev.Comment))
+					{
+						var comment = rev.Comment.Trim();
+						if (!comments.Contains(comment))
+							comments.Add(comment);
+					}
 				}
 			}
 
