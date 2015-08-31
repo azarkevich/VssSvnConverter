@@ -12,13 +12,9 @@ namespace VssSvnConverter
 
 			if(opts.UseGit)
 			{
-				if (opts.GitRepoInit)
+				if (!opts.IsRepoDirExternal)
 				{
 					GitDriver.Create(opts.GitExe, opts.RepoDir);
-				}
-				else
-				{
-					//MessageBox.Show("Can't initialize git repo. git-init-repo to true in config for enable initialization");
 				}
 			}
 			else

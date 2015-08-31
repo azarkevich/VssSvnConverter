@@ -48,8 +48,8 @@ namespace VssSvnConverter.Core
 
 		// import
 		public string RepoDir;
+		public bool IsRepoDirExternal;
 		public bool UseGit;
-		public bool GitRepoInit;
 		public string GitExe;
 		public string GitDefaultAuthorDomain;
 
@@ -161,12 +161,6 @@ namespace VssSvnConverter.Core
 
 			if (UseGit)
 			{
-				GitRepoInit = Config["git-init-repo"]
-					.DefaultIfEmpty("false")
-					.Select(bool.Parse)
-					.First()
-				;
-
 				GitExe = Config["git-exe"]
 					.DefaultIfEmpty("git.exe")
 					.First()
@@ -179,11 +173,14 @@ namespace VssSvnConverter.Core
 				
 			}
 
-			RepoDir = Config["repo-dir"]
-				.DefaultIfEmpty("_repository")
+			RepoDir = Config["external-repo-dir"]
 				.Select(p => Path.Combine(Environment.CurrentDirectory, p))
-				.First()
+				.FirstOrDefault()
 			;
+
+			IsRepoDirExternal = RepoDir != null;
+			
+			RepoDir = RepoDir ?? Path.Combine(Environment.CurrentDirectory, "_repository");
 
 			// open VSS DB
 			if (DB != null)
