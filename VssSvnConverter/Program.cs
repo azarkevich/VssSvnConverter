@@ -142,6 +142,11 @@ namespace VssSvnConverter
 					new Importer().Import(_opts, new CommitsBuilder().Load());
 					break;
 
+				case "import-new":
+					Importer.ClearCurrentSession();
+					new Importer().Import(_opts, new CommitsBuilder().Load());
+					break;
+
 				case "build-scripts":
 					new ScriptsBuilder().Build(_opts, new ImportListBuilder().Load(), new ImportListBuilder().LoadRootTypes());
 					break;

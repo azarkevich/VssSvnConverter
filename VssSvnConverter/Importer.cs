@@ -34,6 +34,15 @@ namespace VssSvnConverter
 
 		IList<CensoreGroup> _censors;
 
+		public static void ClearCurrentSession()
+		{
+			if(File.Exists(DataFileName))
+				File.Delete(DataFileName);
+
+			using(var log = File.CreateText(LogFileName))
+			log.WriteLine("\n\n\n@@@@ start new session @@@@\n\n\n");
+		}
+
 		public void Import(Options opts, List<Commit> commits)
 		{
 			_db = opts.DB;

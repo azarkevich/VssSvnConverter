@@ -41,6 +41,7 @@
 			this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
 			this.button9 = new System.Windows.Forms.Button();
 			this.button10 = new System.Windows.Forms.Button();
+			this.button11 = new System.Windows.Forms.Button();
 			this.SuspendLayout();
 			// 
 			// buttonBuildList
@@ -49,7 +50,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.buttonBuildList.Location = new System.Drawing.Point(12, 12);
 			this.buttonBuildList.Name = "buttonBuildList";
-			this.buttonBuildList.Size = new System.Drawing.Size(147, 23);
+			this.buttonBuildList.Size = new System.Drawing.Size(185, 23);
 			this.buttonBuildList.TabIndex = 0;
 			this.buttonBuildList.Tag = "build-list";
 			this.buttonBuildList.Text = "1. Build List";
@@ -62,7 +63,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.button1.Location = new System.Drawing.Point(12, 41);
 			this.button1.Name = "button1";
-			this.button1.Size = new System.Drawing.Size(188, 23);
+			this.button1.Size = new System.Drawing.Size(226, 23);
 			this.button1.TabIndex = 2;
 			this.button1.Tag = "build-versions";
 			this.button1.Text = "2. Build versions";
@@ -75,7 +76,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.button2.Location = new System.Drawing.Point(12, 70);
 			this.button2.Name = "button2";
-			this.button2.Size = new System.Drawing.Size(188, 23);
+			this.button2.Size = new System.Drawing.Size(226, 23);
 			this.button2.TabIndex = 3;
 			this.button2.Tag = "build-links";
 			this.button2.Text = "3. Build links";
@@ -88,7 +89,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.button3.Location = new System.Drawing.Point(53, 99);
 			this.button3.Name = "button3";
-			this.button3.Size = new System.Drawing.Size(106, 23);
+			this.button3.Size = new System.Drawing.Size(144, 23);
 			this.button3.TabIndex = 5;
 			this.button3.Tag = "build-cache";
 			this.button3.Text = "4. Build cache";
@@ -101,7 +102,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.button4.Location = new System.Drawing.Point(12, 128);
 			this.button4.Name = "button4";
-			this.button4.Size = new System.Drawing.Size(188, 23);
+			this.button4.Size = new System.Drawing.Size(226, 23);
 			this.button4.TabIndex = 7;
 			this.button4.Tag = "build-commits";
 			this.button4.Text = "5. Build commits";
@@ -114,7 +115,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.button5.Location = new System.Drawing.Point(12, 157);
 			this.button5.Name = "button5";
-			this.button5.Size = new System.Drawing.Size(188, 23);
+			this.button5.Size = new System.Drawing.Size(226, 23);
 			this.button5.TabIndex = 8;
 			this.button5.Tag = "build-wc";
 			this.button5.Text = "6. Build wc";
@@ -127,9 +128,9 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.button6.Location = new System.Drawing.Point(12, 186);
 			this.button6.Name = "button6";
-			this.button6.Size = new System.Drawing.Size(188, 23);
+			this.button6.Size = new System.Drawing.Size(93, 23);
 			this.button6.TabIndex = 9;
-			this.button6.Tag = "import";
+			this.button6.Tag = "import-new";
 			this.button6.Text = "7. Import";
 			this.button6.UseVisualStyleBackColor = true;
 			this.button6.Click += new System.EventHandler(this.buildList_Click);
@@ -140,8 +141,8 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.button7.Location = new System.Drawing.Point(12, 215);
 			this.button7.Name = "button7";
-			this.button7.Size = new System.Drawing.Size(188, 23);
-			this.button7.TabIndex = 10;
+			this.button7.Size = new System.Drawing.Size(226, 23);
+			this.button7.TabIndex = 11;
 			this.button7.Tag = "build-scripts";
 			this.button7.Text = "8. Build scripts";
 			this.button7.UseVisualStyleBackColor = true;
@@ -151,7 +152,7 @@
 			// 
 			this.button8.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.button8.Image = global::VssSvnConverter.Properties.Resources.refresh_small;
-			this.button8.Location = new System.Drawing.Point(165, 12);
+			this.button8.Location = new System.Drawing.Point(203, 12);
 			this.button8.Name = "button8";
 			this.button8.Size = new System.Drawing.Size(35, 23);
 			this.button8.TabIndex = 1;
@@ -164,7 +165,7 @@
 			// 
 			this.button9.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.button9.Image = global::VssSvnConverter.Properties.Resources.refresh_small;
-			this.button9.Location = new System.Drawing.Point(165, 99);
+			this.button9.Location = new System.Drawing.Point(203, 99);
 			this.button9.Name = "button9";
 			this.button9.Size = new System.Drawing.Size(35, 23);
 			this.button9.TabIndex = 6;
@@ -185,11 +186,24 @@
 			this.button10.UseVisualStyleBackColor = true;
 			this.button10.Click += new System.EventHandler(this.buildList_Click);
 			// 
+			// button11
+			// 
+			this.button11.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.button11.Location = new System.Drawing.Point(111, 186);
+			this.button11.Name = "button11";
+			this.button11.Size = new System.Drawing.Size(127, 23);
+			this.button11.TabIndex = 10;
+			this.button11.Tag = "import";
+			this.button11.Text = "7. Import (continue)";
+			this.button11.UseVisualStyleBackColor = true;
+			// 
 			// SimpleUI
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(212, 249);
+			this.ClientSize = new System.Drawing.Size(250, 249);
+			this.Controls.Add(this.button11);
 			this.Controls.Add(this.button10);
 			this.Controls.Add(this.button9);
 			this.Controls.Add(this.button7);
@@ -224,5 +238,6 @@
 		private System.Windows.Forms.ToolTip toolTip1;
 		private System.Windows.Forms.Button button9;
 		private System.Windows.Forms.Button button10;
+		private System.Windows.Forms.Button button11;
 	}
 }
