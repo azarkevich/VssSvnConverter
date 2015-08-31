@@ -205,6 +205,9 @@ namespace VssSvnConverter
 					log.WriteLine("Copy: {0} -> {1}", filePath, dstPath);
 				}
 
+				// git can not detect modifications if MTime not updated
+				File.SetLastWriteTimeUtc(filePath, DateTime.UtcNow);
+
 				if(addToSvn)
 					driver.AddFile(dstPath);
 
