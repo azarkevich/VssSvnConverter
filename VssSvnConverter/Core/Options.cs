@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Mime;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using SourceSafeTypeLib;
 using vsslib;
 
@@ -24,7 +25,7 @@ namespace VssSvnConverter.Core
 		public string SourceSafeUser;
 		public string SourceSafePassword;
 
-		public VSSDatabase DB;
+		public Lazy<VSSDatabase> DB;
 
 		// import
 		public Func<string, bool> IncludePredicate;
@@ -185,15 +186,20 @@ namespace VssSvnConverter.Core
 			// open VSS DB
 			if (DB != null)
 			{
-				DB.Close();
+				DB.Value.Close();
 				DB = null;
 			}
 
 			SourceSafeIni = Config["source-safe-ini"].DefaultIfEmpty("srcsafe.ini").First();
 			SourceSafeUser = Config["source-safe-user"].DefaultIfEmpty("").First();
 			SourceSafePassword = Config["source-safe-password"].DefaultIfEmpty("").First();
-			DB = new VSSDatabase();
-			DB.Open(SourceSafeIni, SourceSafeUser, SourceSafePassword);
+			DB = new Lazy<VSSDatabase>(() => {
+				Console.WriteLine("Initialize VSS driver....");
+				var db = new VSSDatabase();
+				db.Open(SourceSafeIni, SourceSafeUser, SourceSafePassword);
+				Console.WriteLine("VSS driver initialized");
+				return db;
+			});
 
 			SSExeHelper.SetupSS(SSPath, SourceSafeIni, SourceSafeUser, SourceSafePassword);
 

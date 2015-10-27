@@ -25,7 +25,7 @@ namespace VssSvnConverter
 			{
 				Console.WriteLine(file);
 
-				var item = opts.DB.VSSItem[file];
+				var item = opts.DB.Value.VSSItem[file];
 
 				foreach (IVSSItem vssLink in item.Links)
 				{

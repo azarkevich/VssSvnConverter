@@ -22,7 +22,7 @@ namespace VssSvnConverter
 			{
 				swRmVss.WriteLine("set PATH=%PATH%;C:\\Program Files (x86)\\Microsoft Visual SourceSafe");
 
-				swRmVss.WriteLine("set SSDIR={0}", Path.GetDirectoryName(opts.DB.SrcSafeIni));
+				swRmVss.WriteLine("set SSDIR={0}", Path.GetDirectoryName(opts.DB.Value.SrcSafeIni));
 				swRmVss.WriteLine("set SSUSER={0}", opts.Config["source-safe-user"].LastOrDefault() ?? "<TODO>");
 				swRmVss.WriteLine("set SSPWD={0}", opts.Config["source-safe-password"].LastOrDefault() ?? "<TODO>");
 				swRmVss.WriteLine();

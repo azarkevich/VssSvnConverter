@@ -32,7 +32,7 @@ namespace VssSvnConverter
 				{
 					Console.WriteLine("VSS Root: {0}", root);
 
-					var rootItem = opts.DB.VSSItem[root].Normalize(opts.DB);
+					var rootItem = opts.DB.Value.VSSItem[root].Normalize(opts.DB.Value);
 
 					rootTypes.WriteLine("{0}	{1}", rootItem.Spec, rootItem.Type == 0 ? "d" : "f");
 

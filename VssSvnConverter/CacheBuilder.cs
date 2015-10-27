@@ -39,7 +39,7 @@ namespace VssSvnConverter
 
 		public void RemoveCachedErrors()
 		{
-			using (_cache = new VssFileCache(_options.CacheDir, _options.DB.SrcSafeIni))
+			using (_cache = new VssFileCache(_options.CacheDir, _options.DB.Value.SrcSafeIni))
 			{
 				_cache.DropAllErrors();
 			}
@@ -72,7 +72,7 @@ namespace VssSvnConverter
 				.ToList()
 			;
 
-			using (var cache = new VssFileCache(_options.CacheDir, _options.DB.SrcSafeIni))
+			using (var cache = new VssFileCache(_options.CacheDir, _options.DB.Value.SrcSafeIni))
 			using (var errLog = File.CreateText(ErrorsFileName))
 			using (var onlyLastVersionsLog = File.CreateText(OnlyLastVersionFileName))
 			{
@@ -145,7 +145,7 @@ namespace VssSvnConverter
 		{
 			var sw = Stopwatch.StartNew();
 
-			_db = _options.DB;
+			_db = _options.DB.Value;
 			var originalVersions = versions.ToList();
 
 			using(_cache = new VssFileCache(_options.CacheDir, _db.SrcSafeIni))

@@ -45,7 +45,7 @@ namespace VssSvnConverter
 
 		public void Import(Options opts, List<Commit> commits)
 		{
-			_db = opts.DB;
+			_db = opts.DB.Value;
 			_opts = opts;
 
 			_unimportants = opts

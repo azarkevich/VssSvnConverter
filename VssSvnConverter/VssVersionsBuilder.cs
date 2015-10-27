@@ -62,13 +62,13 @@ namespace VssSvnConverter
 			var stopWatch = new Stopwatch();
 			stopWatch.Start();
 
-			using (var cache = new VssFileCache(opts.CacheDir + "-revs", opts.DB.SrcSafeIni))
+			using (var cache = new VssFileCache(opts.CacheDir + "-revs", opts.DB.Value.SrcSafeIni))
 			using(var wr = File.CreateText(DataFileName))
 			using(var log = File.CreateText(LogFileName))
 			{
 				wr.AutoFlush = log.AutoFlush = true;
 
-				var db = opts.DB;
+				var db = opts.DB.Value;
 
 				var findex = 0;
 				foreach (var spec in files.Select(t => t.Item1))
