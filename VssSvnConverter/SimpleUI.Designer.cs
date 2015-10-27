@@ -197,6 +197,7 @@
 			this.button11.Tag = "import";
 			this.button11.Text = "7. Import (continue)";
 			this.button11.UseVisualStyleBackColor = true;
+			this.button11.Click += new System.EventHandler(this.buildList_Click);
 			// 
 			// SimpleUI
 			// 

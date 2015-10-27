@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Diagnostics;
+using System.Windows.Forms;
 using SourceSafeTypeLib;
 using vsslib;
 using VssSvnConverter.Core;
@@ -34,16 +35,7 @@ namespace VssSvnConverter
 
 		IList<CensoreGroup> _censors;
 
-		public static void ClearCurrentSession()
-		{
-			if(File.Exists(DataFileName))
-				File.Delete(DataFileName);
-
-			using(var log = File.CreateText(LogFileName))
-			log.WriteLine("\n\n\n@@@@ start new session @@@@\n\n\n");
-		}
-
-		public void Import(Options opts, List<Commit> commits)
+		public void Import(Options opts, List<Commit> commits, bool startNewSession)
 		{
 			_db = opts.DB.Value;
 			_opts = opts;
@@ -108,8 +100,20 @@ namespace VssSvnConverter
 
 			var fromCommit = 0;
 
-			if(File.Exists(DataFileName))
-				fromCommit = File.ReadAllLines(DataFileName).Select(Int32.Parse).DefaultIfEmpty(0).Last();
+			if (!startNewSession)
+			{
+				if (File.Exists(DataFileName))
+				{
+					fromCommit = File.ReadAllLines(DataFileName)
+						.Select(x => Int32.Parse(x) - 1)
+						.DefaultIfEmpty(0)
+						.Last()
+					;
+				}
+
+				if (MessageBox.Show(string.Format("Start import from commit #{0} by {1}", fromCommit, commits[fromCommit].User), "Confirmation", MessageBoxButtons.OKCancel) != DialogResult.OK)
+					return;
+			}
 
 			using(_cache = new VssFileCache(opts.CacheDir, _db.SrcSafeIni))
 			using(var log = File.CreateText(LogFileName))
