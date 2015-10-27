@@ -118,7 +118,7 @@
 			this.button5.Size = new System.Drawing.Size(226, 23);
 			this.button5.TabIndex = 8;
 			this.button5.Tag = "build-wc";
-			this.button5.Text = "6. Build wc";
+			this.button5.Text = "6. Build/cleanup wc";
 			this.button5.UseVisualStyleBackColor = true;
 			this.button5.Click += new System.EventHandler(this.buildList_Click);
 			// 

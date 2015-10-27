@@ -39,6 +39,11 @@ namespace VssSvnConverter.Core
 			get { return _wc; }
 		}
 
+		public void CleanupWorkingTree()
+		{
+			throw new NotImplementedException();
+		}
+
 		public void StartRevision()
 		{
 #if DEBUG

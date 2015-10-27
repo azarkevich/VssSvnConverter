@@ -50,9 +50,14 @@ namespace VssSvnConverter.Core
 		// import
 		public string RepoDir;
 		public bool IsRepoDirExternal;
-		public bool UseGit;
+	
+		// git tgs svn
+		public string DestinationDriver;
+
 		public string GitExe;
 		public string GitDefaultAuthorDomain;
+
+		public string TfExe;
 
 		// directories, which will be created as revision 1, before first import
 		public string[] PreCreateDirs;
@@ -157,13 +162,13 @@ namespace VssSvnConverter.Core
 				.First()
 			;
 
-			UseGit = Config["git-enable"]
-				.DefaultIfEmpty("false")
-				.Select(bool.Parse)
+			DestinationDriver = Config["destination-driver"]
+				.DefaultIfEmpty("svn")
 				.First()
+				.ToLowerInvariant()
 			;
 
-			if (UseGit)
+			if (DestinationDriver == "git")
 			{
 				GitExe = Config["git-exe"]
 					.DefaultIfEmpty("git.exe")
@@ -175,6 +180,14 @@ namespace VssSvnConverter.Core
 					.First()
 				;
 				
+			}
+
+			if (DestinationDriver == "tfs")
+			{
+				TfExe = Config["tf-exe"]
+					.DefaultIfEmpty("tf.exe")
+					.First()
+				;
 			}
 
 			RepoDir = Config["external-repo-dir"]

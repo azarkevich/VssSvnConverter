@@ -119,9 +119,13 @@ namespace VssSvnConverter
 				try
 				{
 					IDestinationDriver driver;
-					if (opts.UseGit)
+					if (opts.DestinationDriver == "git")
 					{
 						driver = new GitDriver(opts.GitExe, opts.RepoDir, opts.GitDefaultAuthorDomain, log);
+					}
+					else if (opts.DestinationDriver == "tfs")
+					{
+						driver = new TfsDriver(opts.TfExe, opts.RepoDir, log);
 					}
 					else
 					{

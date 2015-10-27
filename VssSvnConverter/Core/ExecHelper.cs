@@ -50,7 +50,7 @@ namespace VssSvnConverter.Core
 		{
 			if (r.ExitCode != 0)
 			{
-				var sb = new StringBuilder("Git exec failed: ");
+				var sb = new StringBuilder("Exec failed: ");
 				sb.AppendLine("cmd: " + args);
 				sb.AppendLine("exitcode: " + r.ExitCode);
 				r.ForStdError(s => sb.AppendLine("stderr: " + s));
@@ -60,7 +60,7 @@ namespace VssSvnConverter.Core
 			}
 		}
 
-		public ExecResult Exec(string args, IDictionary<string, string> envVars = null)
+		public ExecResult Exec(string args, IDictionary<string, string> envVars = null, string workingDir = null)
 		{
 			var psi = new ProcessStartInfo(_exe, args);
 			psi.CreateNoWindow = true;
@@ -68,6 +68,7 @@ namespace VssSvnConverter.Core
 			psi.RedirectStandardOutput = true;
 			psi.RedirectStandardInput = true;
 			psi.UseShellExecute = false;
+			psi.WorkingDirectory = workingDir;
 
 			if (envVars != null)
 			{
@@ -99,7 +100,7 @@ namespace VssSvnConverter.Core
 
 			if (_log != null)
 			{
-				_log.WriteLine("git {0}: {1}", args, p.ExitCode);
+				_log.WriteLine("{0} {1}: {2}", Path.GetFileName(_exe), args, p.ExitCode);
 				if (!string.IsNullOrWhiteSpace(stdOut))
 					_log.WriteLine(stdOut);
 				if (!string.IsNullOrWhiteSpace(stdErr))

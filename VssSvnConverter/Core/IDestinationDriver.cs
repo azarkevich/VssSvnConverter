@@ -6,6 +6,8 @@ namespace VssSvnConverter.Core
 	{
 		string WorkingCopy { get; }
 
+		void CleanupWorkingTree();
+
 		void StartRevision();
 		void AddDirectory(string dir);
 		void AddFile(string file);

@@ -55,7 +55,9 @@
     <Compile Include="CacheBuilder.cs" />
     <Compile Include="Core\Commit.cs" />
     <Compile Include="Core\ExecHelper.cs" />
+    <Compile Include="Core\TfExecHelper.cs" />
     <Compile Include="Core\GitExecHelper.cs" />
+    <Compile Include="Core\TfsDriver.cs" />
     <Compile Include="ext\FileCache.cs" />
     <Compile Include="ext\SSExeHelper.cs" />
     <Compile Include="ext\VssFileCache.cs" />

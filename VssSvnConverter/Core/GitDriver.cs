@@ -25,6 +25,11 @@ namespace VssSvnConverter.Core
 			get { return _gitHelper.WorkTree; }
 		}
 
+		public void CleanupWorkingTree()
+		{
+			throw new NotImplementedException();
+		}
+
 		public void StartRevision()
 		{
 			CheckWorkingCopyStatus();

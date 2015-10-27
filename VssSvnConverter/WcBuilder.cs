@@ -10,12 +10,17 @@ namespace VssSvnConverter
 		{
 			File.WriteAllText(Importer.DataFileName, "0\n");
 
-			if(opts.UseGit)
+			if (opts.DestinationDriver == "git")
 			{
 				if (!opts.IsRepoDirExternal)
 				{
 					GitDriver.Create(opts.GitExe, opts.RepoDir);
 				}
+			}
+			else if(opts.DestinationDriver == "tfs")
+			{
+				var driver = new TfsDriver(opts.TfExe, opts.RepoDir, Console.Out);
+				driver.CleanupWorkingTree();
 			}
 			else
 			{
