@@ -172,6 +172,15 @@ namespace VssSvnConverter
 
 				var relPath = file.FileSpec.TrimStart('$', '/', '\\');
 
+				// mangle path
+				if (_opts.MangleImportPath.Count > 0)
+				{
+					foreach (var manglePair in _opts.MangleImportPath)
+					{
+						relPath = manglePair.Item1.Replace(relPath, manglePair.Item2);
+					}
+				}
+
 				// special mode for check unimportant differenrces
 				if (_opts.ImportUnimportantOnly && !_unimportants[relPath.ToLowerInvariant().Replace('\\', '/').Trim('/')].Any())
 					continue;

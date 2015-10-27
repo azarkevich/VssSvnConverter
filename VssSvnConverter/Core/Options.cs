@@ -60,6 +60,9 @@ namespace VssSvnConverter.Core
 		// if specified, ss.exe will be used for retrieve files with known problems
 		public string SSPath;
 
+		// if specified, ss.exe will be used for retrieve files with known problems
+		public List<Tuple<Regex, string>> MangleImportPath;
+
 		public Options(string[] args)
 		{
 			Force = args.Any(a => a == "--force");
@@ -177,6 +180,11 @@ namespace VssSvnConverter.Core
 			RepoDir = Config["external-repo-dir"]
 				.Select(p => Path.Combine(Environment.CurrentDirectory, p))
 				.FirstOrDefault()
+			;
+
+			MangleImportPath = Config["mangle-import-path"]
+				.Select(p => Tuple.Create(new Regex(p.Split(':')[0], RegexOptions.IgnoreCase), p.Split(':')[1]))
+				.ToList()
 			;
 
 			IsRepoDirExternal = RepoDir != null;
