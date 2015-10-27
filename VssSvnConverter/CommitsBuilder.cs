@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.IO;
 using System.Text;
@@ -299,7 +300,7 @@ namespace VssSvnConverter
 
 			if(_opts.CommentAddUserTime)
 			{
-				var commitInfo = string.Format("{{{0} at {1}}}", cmt.User, cmt.At.ToString("g"));
+				var commitInfo = string.Format("{{{1} by {0}}}", cmt.User, cmt.At.ToString("yyyy-MMM-dd HH:ss:mm", CultureInfo.InvariantCulture));
 
 				if (sb.Length > 0)
 				{

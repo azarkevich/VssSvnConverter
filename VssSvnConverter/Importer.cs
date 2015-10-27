@@ -140,7 +140,7 @@ namespace VssSvnConverter
 					{
 						var c = commits[i];
 		
-						Console.WriteLine("[{2,6}/{3}] Start import commit: {0}, by {1}", c.At, c.User, i, commits.Count);
+						Console.WriteLine("[{2,6}/{3}] Import: {0:yyyy-MMM-dd HH:ss:mm}, by {1}", c.At, c.User, i, commits.Count);
 
 						driver.StartRevision();
 
