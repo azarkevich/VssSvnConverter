@@ -53,6 +53,6 @@ Through Git it become possible to push changes (with help of git-tfs) to TFS
 
 TFS support
 -----------
-It appears that conversion VSS -> GIT -> TFS works very slow. If you has 1000 revisions for import and someone commit during import (or import interrupted by other reason),
+It appears, in turn, that conversion VSS -> GIT -> TFS works very slow. If you has 1000 revisions for import and someone commit during import (or import interrupted by other reason),
 then you basically should rebase about 1000 commits and that was terribly slow.
-So, I add GIT support via tf.exe and it is here.
+So, I add TFS support via calling tf.exe and it is here.
