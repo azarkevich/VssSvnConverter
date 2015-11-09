@@ -84,8 +84,15 @@ namespace VssSvnConverter.Core
 			var sb = new StringBuilder("checkin /bypass /force /noprompt /recursive");
 			if (!string.IsNullOrWhiteSpace(author))
 			{
-				var ma = new MailAddress(author);
-				sb.AppendFormat(" /author:\"{0}\"", ma.DisplayName);
+				try
+				{
+					var ma = new MailAddress(author);
+					sb.AppendFormat(" /author:\"{0}\"", ma.DisplayName);
+				}
+				catch
+				{
+					sb.AppendFormat(" /author:\"{0}\"", author);
+				}
 			}
 
 			if(!string.IsNullOrWhiteSpace(comment))
