@@ -105,7 +105,7 @@ namespace VssSvnConverter
 				if (File.Exists(DataFileName))
 				{
 					fromCommit = File.ReadAllLines(DataFileName)
-						.Select(x => Int32.Parse(x) - 1)
+						.Select(x => Int32.Parse(x) + 1)
 						.DefaultIfEmpty(0)
 						.Last()
 					;
