@@ -31,7 +31,7 @@ namespace VssSvnConverter
 		{
 			_options = opts;
 		}
-		
+
 		public List<FileRevision> Load()
 		{
 			return new VssVersionsBuilder().Load(DataFileName);
@@ -39,7 +39,7 @@ namespace VssSvnConverter
 
 		public void RemoveCachedErrors()
 		{
-			using (_cache = new VssFileCache(_options.CacheDir, _options.DB.Value.SrcSafeIni))
+			using (_cache = new VssFileCache(_options.CacheDir, _options.SourceSafeIni))
 			{
 				_cache.DropAllErrors();
 			}
@@ -72,7 +72,7 @@ namespace VssSvnConverter
 				.ToList()
 			;
 
-			using (var cache = new VssFileCache(_options.CacheDir, _options.DB.Value.SrcSafeIni))
+			using (var cache = new VssFileCache(_options.CacheDir, _options.SourceSafeIni))
 			using (var errLog = File.CreateText(ErrorsFileName))
 			using (var onlyLastVersionsLog = File.CreateText(OnlyLastVersionFileName))
 			{
@@ -214,10 +214,10 @@ namespace VssSvnConverter
 						Console.Write("[{0}/{1}] Get: {3,5} x {2}", j, fileGroups.Count, fileGroup.Key, fileGroup.Count());
 
 						var pq = fileGroup.AsParallel();
-						
+
 						if(_options.CacheParallelMaxDegree > 0)
 							pq = pq.WithDegreeOfParallelism(_options.CacheParallelMaxDegree);
-						
+
 						pq.ForAll(Process);
 
 						Console.WriteLine();
@@ -333,7 +333,7 @@ namespace VssSvnConverter
 				}
 			}
 		}
-		
+
 		// when file request to being 'latest only' - its path added to this set and do not processed further
 		readonly HashSet<string> _pinned = new HashSet<string>();
 
@@ -385,7 +385,7 @@ namespace VssSvnConverter
 					if (string.IsNullOrWhiteSpace(_options.SSPath))
 						throw;
 
-					// special case when physical file not correspond to 
+					// special case when physical file not correspond to
 					var m = Regex.Match(ex.Message, "File ['\"](?<phys>[^'\"]+)['\"] not found");
 					if (!m.Success)
 						throw;

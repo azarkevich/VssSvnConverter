@@ -18,7 +18,6 @@ namespace VssSvnConverter
 		public const string DataFileName = "6-import.txt";
 		public const string LogFileName = "log-6-import.txt";
 
-		IVSSDatabase _db;
 		VssFileCache _cache;
 
 		Options _opts;
@@ -37,7 +36,6 @@ namespace VssSvnConverter
 
 		public void Import(Options opts, List<Commit> commits, bool startNewSession)
 		{
-			_db = opts.DB.Value;
 			_opts = opts;
 
 			_unimportants = opts
@@ -115,7 +113,7 @@ namespace VssSvnConverter
 					return;
 			}
 
-			using(_cache = new VssFileCache(opts.CacheDir, _db.SrcSafeIni))
+			using (_cache = new VssFileCache(opts.CacheDir, _opts.SourceSafeIni))
 			using(var log = File.CreateText(LogFileName))
 			{
 				log.AutoFlush = true;
@@ -139,7 +137,7 @@ namespace VssSvnConverter
 					for (var i = fromCommit; i < commits.Count; i++)
 					{
 						var c = commits[i];
-		
+
 						Console.WriteLine("[{2,6}/{3}] Import: {0:yyyy-MMM-dd HH:ss:mm}, by {1}", c.At, c.User, i, commits.Count);
 
 						driver.StartRevision();

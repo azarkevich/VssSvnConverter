@@ -50,7 +50,7 @@ namespace VssSvnConverter.Core
 		// import
 		public string RepoDir;
 		public bool IsRepoDirExternal;
-	
+
 		// git tgs svn
 		public string DestinationDriver;
 
@@ -61,7 +61,7 @@ namespace VssSvnConverter.Core
 
 		// directories, which will be created as revision 1, before first import
 		public string[] PreCreateDirs;
-		
+
 		// if specified, ss.exe will be used for retrieve files with known problems
 		public string SSPath;
 
@@ -179,7 +179,7 @@ namespace VssSvnConverter.Core
 					.DefaultIfEmpty("")
 					.First()
 				;
-				
+
 			}
 
 			if (DestinationDriver == "tfs")
@@ -201,7 +201,7 @@ namespace VssSvnConverter.Core
 			;
 
 			IsRepoDirExternal = RepoDir != null;
-			
+
 			RepoDir = RepoDir ?? Path.Combine(Environment.CurrentDirectory, "_repository");
 
 			// open VSS DB

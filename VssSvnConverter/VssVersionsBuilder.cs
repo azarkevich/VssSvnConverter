@@ -62,7 +62,7 @@ namespace VssSvnConverter
 			var stopWatch = new Stopwatch();
 			stopWatch.Start();
 
-			using (var cache = new VssFileCache(opts.CacheDir + "-revs", opts.DB.Value.SrcSafeIni))
+			using (var cache = new VssFileCache(opts.CacheDir + "-revs", opts.SourceSafeIni))
 			using(var wr = File.CreateText(DataFileName))
 			using(var log = File.CreateText(LogFileName))
 			{
