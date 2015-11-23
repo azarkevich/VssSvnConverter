@@ -38,7 +38,7 @@ namespace VssSvnConverter
 					})
 					.ToList()
 				;
-			
+
 				if(verbs.Count == 0)
 				{
 					ShowHelp();
@@ -52,7 +52,7 @@ namespace VssSvnConverter
 					return -1;
 				}
 
-				verbs.ForEach(ProcessStage);
+				verbs.ForEach(x => ProcessStage(x, true));
 			}
 			catch(ApplicationException ex)
 			{
@@ -78,7 +78,7 @@ namespace VssSvnConverter
 			return 0;
 		}
 
-		public static void ProcessStage(string verb)
+		public static void ProcessStage(string verb, bool noPrompt)
 		{
 			Console.WriteLine("*** Stage: " + verb + " ***");
 
@@ -127,23 +127,23 @@ namespace VssSvnConverter
 					new CacheBuilder(_opts).RemoveCachedErrors();
 					Console.WriteLine("Next: build-commits");
 					break;
-					
+
 				case "build-commits":
 					new CommitsBuilder().Build(_opts, new CacheBuilder(_opts).Load());
 					Console.WriteLine("Next: build-wc");
 					break;
 
 				case "build-wc":
-					new WcBuilder().Build(_opts);
+					new WcBuilder().Build(_opts, noPrompt);
 					Console.WriteLine("Next: import");
-					break;
-
-				case "import":
-					new Importer().Import(_opts, new CommitsBuilder().Load(), false);
 					break;
 
 				case "import-new":
 					new Importer().Import(_opts, new CommitsBuilder().Load(), true);
+					break;
+
+				case "import":
+					new Importer().Import(_opts, new CommitsBuilder().Load(), false);
 					break;
 
 				case "build-scripts":

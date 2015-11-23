@@ -23,7 +23,7 @@ namespace VssSvnConverter
 				Color color;
 				try
 				{
-					Program.ProcessStage(btn.Tag as string);
+					Program.ProcessStage(btn.Tag as string, false);
 					color = Color.PaleGreen;
 				}
 				catch (Exception ex)

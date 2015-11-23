@@ -126,13 +126,8 @@ namespace VssSvnConverter.Core
 			}
 		}
 
-		public static void Create(string repoDir, string wcDir)
+		public static void CreateRepo(string repoDir)
 		{
-			if (Directory.Exists(wcDir))
-			{
-				Directory.Delete(wcDir, true);
-			}
-
 			using (var svn = new SvnRepositoryClient())
 			{
 				if (Directory.Exists(repoDir))
@@ -144,6 +139,14 @@ namespace VssSvnConverter.Core
 			// create hooks
 			File.WriteAllText(Path.Combine(repoDir, "hooks/post-revprop-change.bat"), "exit 0");
 			File.WriteAllText(Path.Combine(repoDir, "hooks/pre-revprop-change.bat"), "exit 0");
+		}
+
+		public static void Checkout(string repoDir, string wcDir)
+		{
+			if (Directory.Exists(wcDir))
+			{
+				Directory.Delete(wcDir, true);
+			}
 
 			using (var svn = new SvnClient())
 			{

@@ -48,16 +48,24 @@ namespace VssSvnConverter.Core
 		public bool CommentAddCommitNumber;
 
 		// import
-		public string RepoDir;
-		public bool IsRepoDirExternal;
 
-		// git tgs svn
-		public string DestinationDriver;
+		// git tfs svn
+		public string ImportDriver;
 
+		// GIT
 		public string GitExe;
 		public string GitDefaultAuthorDomain;
+		public string GitRepoDir;
+		public bool IsGitRepoDirExternal;
 
+		// TFS
 		public string TfExe;
+		public string TfsWorkTreeDir;
+
+		// SVN
+		public string SvnRepoUrl;
+		public string SvnWorkTreeDir;
+		public bool IsSvnRepoDirExternal;
 
 		// directories, which will be created as revision 1, before first import
 		public string[] PreCreateDirs;
@@ -162,47 +170,82 @@ namespace VssSvnConverter.Core
 				.First()
 			;
 
-			DestinationDriver = Config["destination-driver"]
+			ImportDriver = Config["import-driver"]
 				.DefaultIfEmpty("svn")
 				.First()
 				.ToLowerInvariant()
 			;
 
-			if (DestinationDriver == "git")
+			if (ImportDriver == "git")
 			{
 				GitExe = Config["git-exe"]
 					.DefaultIfEmpty("git.exe")
 					.First()
 				;
 
-				GitDefaultAuthorDomain = Config["git-default-author-domain"]
-					.DefaultIfEmpty("")
-					.First()
+				GitRepoDir = Config["git-repo-dir"]
+					.Select(p => Path.Combine(Environment.CurrentDirectory, p))
+					.FirstOrDefault()
 				;
 
+				if (string.IsNullOrWhiteSpace(GitRepoDir))
+				{
+					GitRepoDir = Path.Combine(Environment.CurrentDirectory, "_git_repo");
+				}
+				else
+				{
+					IsGitRepoDirExternal = true;
+				}
+
+				GitDefaultAuthorDomain = Config["git-default-author-domain"]
+					.DefaultIfEmpty("@dummy-email.org")
+					.First()
+				;
 			}
 
-			if (DestinationDriver == "tfs")
+			if (ImportDriver == "tfs")
 			{
 				TfExe = Config["tf-exe"]
 					.DefaultIfEmpty("tf.exe")
 					.First()
 				;
+
+				TfsWorkTreeDir = Config["tfs-worktree-dir"]
+					.Select(p => Path.Combine(Environment.CurrentDirectory, p))
+					.FirstOrDefault()
+				;
 			}
 
-			RepoDir = Config["external-repo-dir"]
-				.Select(p => Path.Combine(Environment.CurrentDirectory, p))
-				.FirstOrDefault()
-			;
+			if (ImportDriver == "svn")
+			{
+				SvnRepoUrl = Config["svn-repo-url"]
+					.FirstOrDefault()
+				;
+
+				if (string.IsNullOrWhiteSpace(SvnRepoUrl))
+				{
+					SvnRepoUrl = Path.Combine(Environment.CurrentDirectory, "_svn_repo");
+				}
+				else
+				{
+					IsSvnRepoDirExternal = true;
+				}
+
+				SvnWorkTreeDir = Config["svn-worktree-dir"]
+					.Select(p => Path.Combine(Environment.CurrentDirectory, p))
+					.FirstOrDefault()
+				;
+
+				if (string.IsNullOrWhiteSpace(SvnWorkTreeDir))
+				{
+					SvnWorkTreeDir = Path.Combine(Environment.CurrentDirectory, "_svn_wc");
+				}
+			}
 
 			MangleImportPath = Config["mangle-import-path"]
 				.Select(p => Tuple.Create(new Regex(p.Split(':')[0], RegexOptions.IgnoreCase), p.Split(':')[1]))
 				.ToList()
 			;
-
-			IsRepoDirExternal = RepoDir != null;
-
-			RepoDir = RepoDir ?? Path.Combine(Environment.CurrentDirectory, "_repository");
 
 			// open VSS DB
 			if (DB != null)

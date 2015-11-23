@@ -121,17 +121,17 @@ namespace VssSvnConverter
 				try
 				{
 					IDestinationDriver driver;
-					if (opts.DestinationDriver == "git")
+					if (opts.ImportDriver == "git")
 					{
-						driver = new GitDriver(opts.GitExe, opts.RepoDir, opts.GitDefaultAuthorDomain, log);
+						driver = new GitDriver(opts.GitExe, opts.GitRepoDir, opts.GitDefaultAuthorDomain, log);
 					}
-					else if (opts.DestinationDriver == "tfs")
+					else if (opts.ImportDriver == "tfs")
 					{
-						driver = new TfsDriver(opts.TfExe, opts.RepoDir, log);
+						driver = new TfsDriver(opts.TfExe, opts.TfsWorkTreeDir, log);
 					}
 					else
 					{
-						driver = new SvnDriver(Path.Combine(Environment.CurrentDirectory, "svn-wc"), log);
+						driver = new SvnDriver(opts.SvnWorkTreeDir, log);
 					}
 
 					for (var i = fromCommit; i < commits.Count; i++)
