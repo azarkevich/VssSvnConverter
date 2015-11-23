@@ -7,7 +7,6 @@ using System.Text.RegularExpressions;
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
-using SourceSafeTypeLib;
 using vsslib;
 using VssSvnConverter.Core;
 
@@ -24,7 +23,7 @@ namespace VssSvnConverter
 
 		ILookup<string, Regex> _unimportants;
 
-		class CensoreGroup
+		public class CensoreGroup
 		{
 			public string Name;
 			public Regex[] FileNameRegex;
@@ -54,47 +53,7 @@ namespace VssSvnConverter
 			;
 
 			// load censores
-			_censors = opts
-				.Config["censore-group"]
-				.Select(v => {
-
-					var fileRxs = opts.Config[string.Format("censore-{0}-file-rx", v)].Select(x => new Regex(x, RegexOptions.IgnoreCase)).ToArray();
-
-					var encoding = Encoding.UTF8;
-
-					var encodingStr = opts.Config[string.Format("censore-{0}-encoding", v)].FirstOrDefault();
-					if (encodingStr != null)
-					{
-						int codePage;
-						if(int.TryParse(encodingStr, out codePage))
-							encoding = Encoding.GetEncoding(codePage);
-						else if (encodingStr == "utf-8-no-bom")
-							encoding = new UTF8Encoding(false);
-						else
-							encoding = Encoding.GetEncoding(encodingStr);
-					}
-
-					var replacements = new List<Tuple<Regex, string>>();
-					for (var i = 0; ; i++)
-					{
-						var rx = opts.Config[string.Format("censore-{0}-match{1}", v, i)].Select(x => new Regex(x, RegexOptions.IgnoreCase)).FirstOrDefault();
-						var replace = opts.Config[string.Format("censore-{0}-replace{1}", v, i)].FirstOrDefault();
-
-						if (i >= 1 && rx == null && replace == null)
-							break;
-
-						if (rx == null && replace == null)
-							continue;
-
-						var rpl = Tuple.Create(rx, replace);
-
-						replacements.Add(rpl);
-					}
-
-					return new CensoreGroup { Name = v, FileNameRegex = fileRxs, Replacement = replacements, Encoding = encoding };
-				})
-				.ToList()
-			;
+			_censors = LoadCensors(opts);
 
 			var fromCommit = 0;
 
@@ -158,6 +117,51 @@ namespace VssSvnConverter
 			}
 			Console.WriteLine("Import complete.");
 		}
+
+		public static List<CensoreGroup> LoadCensors(Options opts)
+		{
+			return opts
+				.Config["censore-group"]
+				.Select(v => {
+
+					var fileRxs = opts.Config[string.Format("censore-{0}-file-rx", v)].Select(x => new Regex(x, RegexOptions.IgnoreCase)).ToArray();
+
+					var encoding = Encoding.UTF8;
+
+					var encodingStr = opts.Config[string.Format("censore-{0}-encoding", v)].FirstOrDefault();
+					if (encodingStr != null)
+					{
+						int codePage;
+						if(int.TryParse(encodingStr, out codePage))
+							encoding = Encoding.GetEncoding(codePage);
+						else if (encodingStr == "utf-8-no-bom")
+							encoding = new UTF8Encoding(false);
+						else
+							encoding = Encoding.GetEncoding(encodingStr);
+					}
+
+					var replacements = new List<Tuple<Regex, string>>();
+					for (var i = 0; ; i++)
+					{
+						var rx = opts.Config[string.Format("censore-{0}-match{1}", v, i)].Select(x => new Regex(x, RegexOptions.IgnoreCase)).FirstOrDefault();
+						var replace = opts.Config[string.Format("censore-{0}-replace{1}", v, i)].FirstOrDefault();
+
+						if (i >= 1 && rx == null && replace == null)
+							break;
+
+						if (rx == null && replace == null)
+							continue;
+
+						var rpl = Tuple.Create(rx, replace);
+
+						replacements.Add(rpl);
+					}
+
+					return new CensoreGroup { Name = v, FileNameRegex = fileRxs, Replacement = replacements, Encoding = encoding };
+				})
+				.ToList();
+		}
+
 		[DllImport("Kernel32.dll", CharSet = CharSet.Unicode )]
 		static extern bool CreateHardLink(string lpFileName, string lpExistingFileName,IntPtr lpSecurityAttributes);
 
@@ -245,18 +249,20 @@ namespace VssSvnConverter
 
 				};
 
-				DoCensoring(dstPath, relPath, prepareForModifyInplace);
+				DoCensoring(driver.WorkingCopy, dstPath, _censors, prepareForModifyInplace);
 
 				if (!addToSvn && _unimportants.Count > 0)
 					RevertUnimportant(driver, dstPath, relPath, prepareForModifyInplace);
 			}
 		}
 
-		void DoCensoring(string dstPath, string relPath, Action<bool> prepareFileForModifications)
+		public static void DoCensoring(string rootDir, string dstPath, IList<CensoreGroup> censors, Action<bool> prepareFileForModifications)
 		{
-			var censors = _censors.Where(cg => cg.FileNameRegex.Any(rx => rx.IsMatch(relPath))).ToArray();
+			var testPath = dstPath.Substring(rootDir.Length).TrimStart('\\', '/').Replace('/', '\\');
 
-			if (censors.Length == 0)
+			censors = censors.Where(cg => cg.FileNameRegex.Any(rx => rx.IsMatch(testPath))).ToList();
+
+			if (censors.Count == 0)
 				return;
 
 			var enc = censors.Select(cg => cg.Encoding).DefaultIfEmpty(Encoding.ASCII).First();
@@ -287,7 +293,7 @@ namespace VssSvnConverter
 
 			File.WriteAllLines(dstPath, lines, enc);
 
-			Console.WriteLine("	Censored: {0}", relPath);
+			Console.WriteLine("	Censored: {0}", testPath);
 		}
 
 		void RevertUnimportant(IDestinationDriver driver, string path, string relPath, Action<bool> prepareFileForModifications)

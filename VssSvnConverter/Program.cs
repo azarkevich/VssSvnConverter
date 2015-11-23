@@ -150,6 +150,41 @@ namespace VssSvnConverter
 					new ScriptsBuilder().Build(_opts, new ImportListBuilder().Load(), new ImportListBuilder().LoadRootTypes());
 					break;
 
+				case "try-censors":
+					var censors = Importer.LoadCensors(_opts);
+
+					string workTree;
+					if (_opts.ImportDriver == "svn")
+						workTree = _opts.SvnWorkTreeDir;
+					else if (_opts.ImportDriver == "git")
+						workTree = _opts.GitRepoDir;
+					else if (_opts.ImportDriver == "tfs")
+						workTree = _opts.TfsWorkTreeDir;
+					else
+						throw new Exception("Unknown driver: " + _opts.ImportDriver);
+
+					// make copy of file because it can be hard link to cache
+					var curpath = new string[1];
+					Action<bool> prepareForEdit = b => {
+						var p = curpath[0];
+						File.Delete(p);
+					};
+
+					foreach (var dir in Directory.EnumerateDirectories(workTree))
+					{
+						var fn = Path.GetFileName(dir);
+						if (fn == ".git" || fn == "$tf" || fn == ".svn")
+							continue;
+
+						foreach (var file in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories))
+						{
+							curpath[0] = file;
+							Importer.DoCensoring(workTree, file, censors, prepareForEdit);
+						}
+					}
+
+					break;
+
 				default:
 					throw new ApplicationException("Unknown stage: " + verb);
 			}

@@ -42,6 +42,8 @@
 			this.button9 = new System.Windows.Forms.Button();
 			this.button10 = new System.Windows.Forms.Button();
 			this.button11 = new System.Windows.Forms.Button();
+			this.buttonTryCensors = new System.Windows.Forms.Button();
+			this.label1 = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
 			// buttonBuildList
@@ -199,11 +201,33 @@
 			this.button11.UseVisualStyleBackColor = true;
 			this.button11.Click += new System.EventHandler(this.buildList_Click);
 			// 
+			// buttonTryCensors
+			// 
+			this.buttonTryCensors.Location = new System.Drawing.Point(12, 265);
+			this.buttonTryCensors.Name = "buttonTryCensors";
+			this.buttonTryCensors.Size = new System.Drawing.Size(226, 23);
+			this.buttonTryCensors.TabIndex = 12;
+			this.buttonTryCensors.Tag = "try-censors";
+			this.buttonTryCensors.Text = "Try Censore";
+			this.buttonTryCensors.UseVisualStyleBackColor = true;
+			this.buttonTryCensors.Click += new System.EventHandler(this.buildList_Click);
+			// 
+			// label1
+			// 
+			this.label1.AutoSize = true;
+			this.label1.Location = new System.Drawing.Point(12, 249);
+			this.label1.Name = "label1";
+			this.label1.Size = new System.Drawing.Size(31, 13);
+			this.label1.TabIndex = 13;
+			this.label1.Text = "Test:";
+			// 
 			// SimpleUI
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(250, 249);
+			this.ClientSize = new System.Drawing.Size(250, 300);
+			this.Controls.Add(this.label1);
+			this.Controls.Add(this.buttonTryCensors);
 			this.Controls.Add(this.button11);
 			this.Controls.Add(this.button10);
 			this.Controls.Add(this.button9);
@@ -222,6 +246,7 @@
 			this.Text = "Converter";
 			this.TopMost = true;
 			this.ResumeLayout(false);
+			this.PerformLayout();
 
 		}
 
@@ -240,5 +265,7 @@
 		private System.Windows.Forms.Button button9;
 		private System.Windows.Forms.Button button10;
 		private System.Windows.Forms.Button button11;
+		private System.Windows.Forms.Button buttonTryCensors;
+		private System.Windows.Forms.Label label1;
 	}
 }
