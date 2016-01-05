@@ -15,7 +15,7 @@ namespace VssSvnConverter
 	{
 		public string FileSpec;
 		public string User;
-		public string OriginalUser;
+		public string User4Comment;
 		public DateTime At;
 		public int VssVersion;
 		public string Comment;

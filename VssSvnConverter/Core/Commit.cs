@@ -8,7 +8,8 @@ namespace VssSvnConverter.Core
 		public DateTime At;
 		public DateTime LastChangeAt;
 		public string User;
-	
+		public string User4Comment;
+
 		// File revisions
 		public void AddRevision(FileRevisionLite rev)
 		{

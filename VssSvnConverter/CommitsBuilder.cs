@@ -29,7 +29,7 @@ namespace VssSvnConverter
 					if(line.StartsWith("	"))
 					{
 						var arr = line.Substring(1).Split(':');
-						
+
 						Debug.Assert(arr.Length == 3);
 						Debug.Assert(commit != null);
 
@@ -70,7 +70,7 @@ namespace VssSvnConverter
 			;
 
 			// perform mapping vss user -> author
-			MapUsers(orderedRevisions);
+			MapUsersInComment(orderedRevisions);
 
 			var commits = SliceToCommits(orderedRevisions);
 
@@ -96,7 +96,7 @@ namespace VssSvnConverter
 
 		void MapUsers(IEnumerable<Commit> commits)
 		{
-			var mapping = LoadUserMappings("user-mapping-author2commiter");
+			var mapping = LoadUserMappings("authors");
 
 			if (mapping == null)
 				return;
@@ -128,9 +128,9 @@ namespace VssSvnConverter
 			}
 		}
 
-		void MapUsers(IEnumerable<FileRevision> orderedRevisions)
+		void MapUsersInComment(IEnumerable<FileRevision> orderedRevisions)
 		{
-			var mapping = LoadUserMappings("user-mapping-vss2author");
+			var mapping = LoadUserMappings("authors-for-comment");
 
 			if (mapping == null)
 				return;
@@ -151,8 +151,7 @@ namespace VssSvnConverter
 				}
 				else if (author != "*" && String.Compare(author, rev.User, StringComparison.OrdinalIgnoreCase) != 0)
 				{
-					rev.OriginalUser = rev.User;
-					rev.User = author;
+					rev.User4Comment = author;
 				}
 			}
 
@@ -181,6 +180,9 @@ namespace VssSvnConverter
 
 					var from = line.Substring(0, ind).Trim().ToLowerInvariant();
 					var to = line.Substring(ind + 1).Trim();
+
+					if (mapping.ContainsKey(@from))
+						throw new Exception("Invalid user mapping file: " + mappingFile + "; Duplicate entry: " + @from);
 
 					mapping[@from] = to;
 				}
@@ -236,7 +238,8 @@ namespace VssSvnConverter
 				{
 					cmt = new Commit {
 						At = rev.At,
-						User = rev.User
+						User = rev.User,
+						User4Comment = rev.User4Comment
 					};
 					currentUserCommits.Add(rev.User, cmt);
 
@@ -300,7 +303,7 @@ namespace VssSvnConverter
 
 			if(_opts.CommentAddUserTime)
 			{
-				var commitInfo = string.Format("{{{1} by {0}}}", cmt.User, cmt.At.ToString("yyyy-MMM-dd HH:ss:mm", CultureInfo.InvariantCulture));
+				var commitInfo = string.Format("{{{1} by {0}}}", cmt.User4Comment ?? cmt.User, cmt.At.ToString("yyyy-MMM-dd HH:ss:mm", CultureInfo.InvariantCulture));
 
 				if (sb.Length > 0)
 				{
