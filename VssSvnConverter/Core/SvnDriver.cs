@@ -60,10 +60,15 @@ namespace VssSvnConverter.Core
 				svn.CreateDirectory(dir, new SvnCreateDirectoryArgs { CreateParents = true });
 		}
 
-		public void AddFile(string file)
+		public void AddFiles(params string[] files)
 		{
 			using (var svn = new SvnClient())
-				svn.Add(file);
+			{
+				foreach (var file in files)
+				{
+					svn.Add(file);
+				}
+			}
 		}
 
 		public string GetDiff(string file)

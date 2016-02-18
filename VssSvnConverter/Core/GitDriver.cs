@@ -41,9 +41,12 @@ namespace VssSvnConverter.Core
 			Directory.CreateDirectory(dir);
 		}
 
-		public void AddFile(string file)
+		public void AddFiles(params string[] files)
 		{
-			_gitHelper.Exec(string.Format("add -f -- \"{0}\"", file));
+			foreach (var file in files)
+			{
+				_gitHelper.Exec(string.Format("add -f -- \"{0}\"", file));
+			}
 		}
 
 		public string GetDiff(string file)
@@ -82,7 +85,7 @@ namespace VssSvnConverter.Core
 			}
 
 			var cmd = string.Format("commit --all --file=\"{0}\" --allow-empty-message --author=\"{1}\" --date={2}", commitMessageFile, author, time.ToString("o"));
-			
+
 			_gitHelper.ExecCommit(cmd);
 		}
 

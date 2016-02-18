@@ -169,6 +169,8 @@ namespace VssSvnConverter
 
 		void LoadRevision(IDestinationDriver driver, Commit commit, StreamWriter log)
 		{
+			var added = new List<string>();
+
 			foreach (var file in commit.Files)
 			{
 				var filePath = _cache.GetFilePath(file.FileSpec, file.VssVersion);
@@ -204,7 +206,7 @@ namespace VssSvnConverter
 				if(!Directory.Exists(dstDir))
 					driver.AddDirectory(dstDir);
 
-				var addToSvn = !File.Exists(dstPath);
+				var addToVcs = !File.Exists(dstPath);
 
 				if(File.Exists(dstPath))
 				{
@@ -227,8 +229,8 @@ namespace VssSvnConverter
 				// git can not detect modifications if MTime not updated
 				File.SetLastWriteTimeUtc(filePath, DateTime.UtcNow);
 
-				if(addToSvn)
-					driver.AddFile(dstPath);
+				if(addToVcs)
+					added.Add(dstPath);
 
 				// file can be modified in place if it is not hardlink
 				var canBeModifiedInplace = !_useHardLink;
@@ -251,9 +253,12 @@ namespace VssSvnConverter
 
 				DoCensoring(driver.WorkingCopy, dstPath, _censors, prepareForModifyInplace);
 
-				if (!addToSvn && _unimportants.Count > 0)
+				if (!addToVcs && _unimportants.Count > 0)
 					RevertUnimportant(driver, dstPath, relPath, prepareForModifyInplace);
 			}
+
+			if(added.Count > 0)
+				driver.AddFiles(added.ToArray());
 		}
 
 		public static void DoCensoring(string rootDir, string dstPath, IList<CensoreGroup> censors, Action<bool> prepareFileForModifications)

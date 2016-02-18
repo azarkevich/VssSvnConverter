@@ -10,7 +10,7 @@ namespace VssSvnConverter.Core
 
 		void StartRevision();
 		void AddDirectory(string dir);
-		void AddFile(string file);
+		void AddFiles(params string[] files);
 		string GetDiff(string file);
 		void Revert(string file);
 		void CommitRevision(string author, string comment, DateTime time);

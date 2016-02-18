@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Mail;
 using System.Text;
 
@@ -64,9 +66,23 @@ namespace VssSvnConverter.Core
 			_tfHelper.Exec(string.Format("add \"{0}\" /noprompt /recursive", dir));
 		}
 
-		public void AddFile(string file)
+		public static List<List<string>> Split(IList<string> source, int chunkSize)
 		{
-			_tfHelper.Exec(string.Format("add \"{0}\" /noprompt /recursive", file));
+			return source
+				.Select((x, i) => new { Index = i, Value = x })
+				.GroupBy(x => x.Index / chunkSize)
+				.Select(x => x.Select(v => v.Value).ToList())
+				.ToList()
+			;
+		}
+
+		public void AddFiles(params string[] files)
+		{
+			foreach (var chunk in Split(files, 50))
+			{
+				var cmdLine = string.Format("add {0} /noprompt", string.Join(" ", chunk.Select(file => '"' + file + '"')));
+				_tfHelper.Exec(cmdLine);
+			}
 		}
 
 		public string GetDiff(string file)
