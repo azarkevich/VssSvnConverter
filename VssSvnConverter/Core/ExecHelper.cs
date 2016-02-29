@@ -83,15 +83,30 @@ namespace VssSvnConverter.Core
 			Debug.Assert(p != null);
 
 			var stdOut = "";
-			var t1 = Task.Factory.StartNew(() =>
-			{
-				stdOut = p.StandardOutput.ReadToEnd();
+			var t1 = Task.Factory.StartNew(() => {
+				var sb = new StringBuilder();
+
+				while (!p.StandardOutput.EndOfStream)
+				{
+					var line = p.StandardOutput.ReadLine();
+					sb.AppendLine(line);
+					if (_log != null)
+						_log.WriteLine("STDOUT: " + line);
+				}
+				stdOut = sb.ToString();
 			});
 
 			var stdErr = "";
-			var t2 = Task.Factory.StartNew(() =>
-			{
-				stdErr = p.StandardError.ReadToEnd();
+			var t2 = Task.Factory.StartNew(() => {
+				var sb = new StringBuilder();
+				while (!p.StandardError.EndOfStream)
+				{
+					var line = p.StandardError.ReadLine();
+					sb.AppendLine(line);
+					if (_log != null)
+						_log.WriteLine("STDERR: " + line);
+				}
+				stdErr = sb.ToString();
 			});
 
 			p.WaitForExit();
