@@ -66,19 +66,9 @@ namespace VssSvnConverter.Core
 			_tfHelper.Exec(string.Format("add \"{0}\" /noprompt /recursive", dir));
 		}
 
-		public static List<List<string>> Split(IList<string> source, int chunkSize)
-		{
-			return source
-				.Select((x, i) => new { Index = i, Value = x })
-				.GroupBy(x => x.Index / chunkSize)
-				.Select(x => x.Select(v => v.Value).ToList())
-				.ToList()
-			;
-		}
-
 		public void AddFiles(params string[] files)
 		{
-			foreach (var chunk in Split(files, 50))
+			foreach (var chunk in files.Partition(25))
 			{
 				var cmdLine = string.Format("add {0} /noprompt", string.Join(" ", chunk.Select(file => '"' + file + '"')));
 				_tfHelper.Exec(cmdLine);

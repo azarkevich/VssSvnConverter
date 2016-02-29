@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 
 namespace VssSvnConverter.Core
 {
@@ -43,9 +44,9 @@ namespace VssSvnConverter.Core
 
 		public void AddFiles(params string[] files)
 		{
-			foreach (var file in files)
+			foreach (var chunk in files.Partition(25))
 			{
-				_gitHelper.Exec(string.Format("add -f -- \"{0}\"", file));
+				_gitHelper.Exec("add -f -- " + string.Join(" ", chunk.Select(file => '"' + file + '"')));
 			}
 		}
 
