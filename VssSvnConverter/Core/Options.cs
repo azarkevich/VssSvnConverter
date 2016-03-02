@@ -260,7 +260,7 @@ namespace VssSvnConverter.Core
 				return db;
 			});
 
-			SSExeHelper.SetupSS(SSPath, SourceSafeIni, SourceSafeUser, SourceSafePassword);
+			SSExeHelper.SetupSS(SourceSafeIni, SourceSafeUser, SourceSafePassword);
 
 			// include/exclude checks
 			var checks = Config["import-pattern"]

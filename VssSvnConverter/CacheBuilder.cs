@@ -408,7 +408,7 @@ namespace VssSvnConverter
 
 					Console.WriteLine("\nPhysical file mismatch. Try get with ss.exe");
 
-					path = new SSExeHelper().Get(file.FileSpec, file.VssVersion, tempDir);
+					path = new SSExeHelper(_options.SSPath, _log).Get(file.FileSpec, file.VssVersion, tempDir);
 					if (path == null)
 					{
 						Console.WriteLine("Get with ss.exe failed");
