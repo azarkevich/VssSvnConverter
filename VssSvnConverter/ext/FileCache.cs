@@ -87,7 +87,7 @@ namespace vcslib
 				var ce = new CacheEntry(arr[0], arr[1], arr[2], arr[3]);
 
 				_cacheIndex[ce.Key] = ce;
-				
+
 				_indexEntriesCount++;
 			}
 		}
@@ -178,7 +178,7 @@ namespace vcslib
 					// remove after adding new entry for same key
 					oldDataPath = ce.ContentPath;
 				}
-			
+
 				var store = Path.Combine(_cacheBaseDir, (_indexEntriesCount / 1000).ToString(CultureInfo.InvariantCulture));
 
 				if(!Directory.Exists(store))
@@ -189,9 +189,16 @@ namespace vcslib
 				ce = new CacheEntry(key, filePath, hash, notes);
 
 				if(copy)
-					File.Copy(path, filePath);
+				{
+					File.Copy(path, filePath, true);
+				}
 				else
+				{
+					if (File.Exists(filePath))
+						File.Delete(filePath);
+
 					File.Move(path, filePath);
+				}
 
 				_cacheIndex[ce.Key] = ce;
 

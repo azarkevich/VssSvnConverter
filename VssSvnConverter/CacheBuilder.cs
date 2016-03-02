@@ -213,12 +213,10 @@ namespace VssSvnConverter
 
 						Console.Write("[{0}/{1}] Get: {3,5} x {2}", j, fileGroups.Count, fileGroup.Key, fileGroup.Count());
 
-						var pq = fileGroup.AsParallel();
-
-						if(_options.CacheParallelMaxDegree > 0)
-							pq = pq.WithDegreeOfParallelism(_options.CacheParallelMaxDegree);
-
-						pq.ForAll(Process);
+						foreach (var fg in fileGroup)
+						{
+							Process(fg);
+						}
 
 						Console.WriteLine();
 					}
@@ -363,6 +361,22 @@ namespace VssSvnConverter
 
 		void GetFromVss(FileRevision file)
 		{
+			var tempDir = Path.Combine(Environment.CurrentDirectory, "vss-temp");
+
+			// clean destination
+			foreach (var tempFile in Directory.GetFiles(tempDir, "*", SearchOption.AllDirectories))
+			{
+				try
+				{
+					File.SetAttributes(tempFile, FileAttributes.Normal);
+					File.Delete(tempFile);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine("\nCan't remove temp file: " + tempFile + "\n" + ex.Message);
+				}
+			}
+
 			try
 			{
 				var vssItem = _db.VSSItem[file.FileSpec];
@@ -373,7 +387,6 @@ namespace VssSvnConverter
 
 				var dstFileName = Path.GetFileName(file.FileSpec.TrimStart('$', '/', '\\'));
 
-				var tempDir = Path.Combine(Environment.CurrentDirectory, "vss-temp");
 				var path = Path.Combine(tempDir, Guid.NewGuid().ToString("N") + "-" + dstFileName);
 
 				try

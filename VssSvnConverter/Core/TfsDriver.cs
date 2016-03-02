@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
@@ -49,7 +48,7 @@ namespace VssSvnConverter.Core
 
 		bool IsWorkingCopyClean(bool failOnEventInStdErr)
 		{
-			var r = _tfHelper.Exec("status");
+			var r = _tfHelper.Exec("status . /recursive /noprompt");
 
 			if (r.StdOut.Trim() == "There are no pending changes.")
 				return true;

@@ -30,7 +30,6 @@ namespace VssSvnConverter.Core
 
 		// cache
 		public string CacheDir;
-		public int CacheParallelMaxDegree;
 
 		public readonly HashSet<string> LatestOnly = new HashSet<string>();
 
@@ -109,8 +108,6 @@ namespace VssSvnConverter.Core
 
 			// cache
 			CacheDir = Config["cache-dir"].DefaultIfEmpty(".cache").First();
-
-			CacheParallelMaxDegree = Config["cache-parallel-max-degree"].DefaultIfEmpty("0").Select(Int32.Parse).First();
 
 			LatestOnly.Clear();
 			foreach (var v in Config["latest-only"])
@@ -246,7 +243,7 @@ namespace VssSvnConverter.Core
 			;
 
 			// open VSS DB
-			if (DB != null)
+			if (DB != null && DB.IsValueCreated)
 			{
 				DB.Value.Close();
 				DB = null;

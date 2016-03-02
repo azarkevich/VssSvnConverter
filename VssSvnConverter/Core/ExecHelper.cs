@@ -78,6 +78,8 @@ namespace VssSvnConverter.Core
 				}
 			}
 
+			_log.WriteLine("START: {0} {1}", psi.FileName, psi.Arguments);
+
 			var p = Process.Start(psi);
 
 			Debug.Assert(p != null);

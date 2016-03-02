@@ -26,13 +26,20 @@ namespace vsslib
 				File.Delete(dstFile);
 
 			var args = string.Format("get \"{0}\" -V{1} -I- -W -GWR -GF- -GL\"{2}\"", spec, version, dstDir);
-			var p = Process.Start(_ssExePath, args);
-			p.WaitForExit();
 
-			if ((p.ExitCode != 0) || !File.Exists(dstFile))
-				return null;
+			var psi = new ProcessStartInfo(_ssExePath, args);
+			psi.CreateNoWindow = true;
+			psi.UseShellExecute = false;
 
-			return dstFile;
+			using(var p = Process.Start(psi))
+			{
+				p.WaitForExit();
+
+				if ((p.ExitCode != 0) || !File.Exists(dstFile))
+					return null;
+
+				return dstFile;
+			}
 		}
 	}
 }
