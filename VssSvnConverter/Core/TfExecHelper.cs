@@ -10,9 +10,9 @@ namespace VssSvnConverter.Core
 
 		readonly ExecHelper _execHelper;
 
-		public TfExecHelper(string tfExe, string workingCopy, TextWriter log)
+		public TfExecHelper(string tfExe, string workingCopy, TextWriter log, TimeSpan? hungDetection = null)
 		{
-			_execHelper = new ExecHelper(tfExe, log, false);
+			_execHelper = new ExecHelper(tfExe, log, false, hungDetection);
 			WorkTree = workingCopy;
 			TfDir = Path.Combine(WorkTree, "$tf");
 		}

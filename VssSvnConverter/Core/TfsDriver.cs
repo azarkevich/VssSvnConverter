@@ -9,6 +9,7 @@ namespace VssSvnConverter.Core
 	class TfsDriver : IDestinationDriver
 	{
 		readonly TfExecHelper _tfHelper;
+		readonly TfExecHelper _tfHelperRestartable;
 		readonly string _workingCopy;
 		readonly string _commitMessageFile;
 
@@ -16,6 +17,7 @@ namespace VssSvnConverter.Core
 		{
 			_workingCopy = workingCopy;
 			_tfHelper = new TfExecHelper(tfPath, workingCopy, log);
+			_tfHelperRestartable = new TfExecHelper(tfPath, workingCopy, log, TimeSpan.FromSeconds(60));
 
 			_commitMessageFile = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
 
@@ -48,7 +50,8 @@ namespace VssSvnConverter.Core
 
 		bool IsWorkingCopyClean(bool failOnEventInStdErr)
 		{
-			var r = _tfHelper.Exec("status . /recursive /noprompt");
+			// tf status often hung
+			var r = _tfHelperRestartable.Exec("status . /recursive /noprompt");
 
 			if (r.StdOut.Trim() == "There are no pending changes.")
 				return true;

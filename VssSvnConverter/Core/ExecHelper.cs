@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace VssSvnConverter.Core
@@ -38,12 +39,14 @@ namespace VssSvnConverter.Core
 		readonly string _exe;
 		readonly TextWriter _log;
 		readonly bool _validate;
+		readonly TimeSpan? _hungDetection;
 
-		public ExecHelper(string exe, TextWriter log, bool validate)
+		public ExecHelper(string exe, TextWriter log, bool validate, TimeSpan? hungDetection = null)
 		{
 			_log = log;
 			_validate = validate;
 			_exe = exe;
+			_hungDetection = hungDetection;
 		}
 
 		public static void ValidateResult(ExecResult r, string args)
@@ -62,6 +65,25 @@ namespace VssSvnConverter.Core
 
 		public ExecResult Exec(string args, IDictionary<string, string> envVars = null, string workingDir = null)
 		{
+			if (!_hungDetection.HasValue)
+				return TryExec(args, envVars, workingDir, CancellationToken.None);
+
+			while (true)
+			{
+				try
+				{
+					var cts = new CancellationTokenSource(_hungDetection.Value);
+					return TryExec(args, envVars, workingDir, cts.Token);
+				}
+				catch (OperationCanceledException)
+				{
+					_log.WriteLine("WARNING: Process hung. Restart");
+				}
+			}
+		}
+
+		ExecResult TryExec(string args, IDictionary<string, string> envVars, string workingDir, CancellationToken ct)
+		{
 			var psi = new ProcessStartInfo(_exe, args);
 			psi.CreateNoWindow = true;
 			psi.RedirectStandardError = true;
@@ -73,15 +95,22 @@ namespace VssSvnConverter.Core
 			if (envVars != null)
 			{
 				foreach (var envVar in envVars)
-				{
 					psi.EnvironmentVariables.Add(envVar.Key, envVar.Value);
-				}
 			}
 
 			_log.WriteLine("START: {0} {1}", psi.FileName, psi.Arguments);
 
-			var p = Process.Start(psi);
+			Process p = null;
 
+			IDisposable cancellationRegistration = null;
+			if(ct.CanBeCanceled)
+			{
+				cancellationRegistration = ct.Register(() => {
+					p.Kill();
+				});
+			}
+
+			p = Process.Start(psi);
 			Debug.Assert(p != null);
 
 			var stdOut = "";
@@ -125,6 +154,12 @@ namespace VssSvnConverter.Core
 			}
 
 			var r = new ExecResult(p.ExitCode, stdOut, stdErr);
+
+			p = null;
+			if (cancellationRegistration != null)
+				cancellationRegistration.Dispose();
+
+			ct.ThrowIfCancellationRequested();
 
 			if (_validate)
 				ValidateResult(r, args);
