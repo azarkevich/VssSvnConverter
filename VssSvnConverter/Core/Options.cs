@@ -58,6 +58,7 @@ namespace VssSvnConverter.Core
 		// TFS
 		public string TfExe;
 		public string TfsWorkTreeDir;
+		public bool TfNoCheckStatusBeforeStartRevision;
 
 		// SVN
 		public string SvnRepoUrl;
@@ -207,6 +208,12 @@ namespace VssSvnConverter.Core
 
 				TfsWorkTreeDir = Config["tfs-worktree-dir"]
 					.Select(p => Path.Combine(Environment.CurrentDirectory, p))
+					.FirstOrDefault()
+				;
+
+				TfNoCheckStatusBeforeStartRevision = Config["tfs-no-check-status-every-revision"]
+					.Select(p => p.ToLowerInvariant())
+					.Select(p => p == "1" || p == "yes" || p == "true")
 					.FirstOrDefault()
 				;
 			}

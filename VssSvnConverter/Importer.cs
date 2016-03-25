@@ -71,8 +71,13 @@ namespace VssSvnConverter
 					;
 				}
 
-				if (MessageBox.Show(string.Format("Start import from commit #{0} by {1}", fromCommit, commits[fromCommit].User), "Confirmation", MessageBoxButtons.OKCancel) != DialogResult.OK)
+				if (MessageBox.Show(string.Format("Cleanu work tree and start import from commit #{0} by {1}", fromCommit, commits[fromCommit].User), "Confirmation", MessageBoxButtons.OKCancel) != DialogResult.OK)
 					return;
+
+				if (opts.ImportDriver == "tfs")
+				{
+					new TfsDriver(opts, Console.Out, false).CleanupWorkingTree();
+				}
 			}
 
 			using (_cache = new VssFileCache(opts.CacheDir, _opts.SourceSafeIni))
@@ -89,7 +94,7 @@ namespace VssSvnConverter
 					}
 					else if (opts.ImportDriver == "tfs")
 					{
-						driver = new TfsDriver(opts.TfExe, opts.TfsWorkTreeDir, log, true);
+						driver = new TfsDriver(opts, log, true);
 					}
 					else
 					{

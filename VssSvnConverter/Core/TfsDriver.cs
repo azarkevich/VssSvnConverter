@@ -10,14 +10,15 @@ namespace VssSvnConverter.Core
 	{
 		readonly TfExecHelper _tfHelper;
 		readonly TfExecHelper _tfHelperRestartable;
-		readonly string _workingCopy;
 		readonly string _commitMessageFile;
 
-		public TfsDriver(string tfPath, string workingCopy, TextWriter log, bool checkWcStatus)
+		readonly Options _opts;
+
+		public TfsDriver(Options opts, TextWriter log, bool checkWcStatus)
 		{
-			_workingCopy = workingCopy;
-			_tfHelper = new TfExecHelper(tfPath, workingCopy, log);
-			_tfHelperRestartable = new TfExecHelper(tfPath, workingCopy, log, TimeSpan.FromSeconds(60));
+			_opts = opts;
+			_tfHelper = new TfExecHelper(opts.TfExe, opts.TfsWorkTreeDir, log);
+			_tfHelperRestartable = new TfExecHelper(opts.TfExe, opts.TfsWorkTreeDir, log, TimeSpan.FromSeconds(60));
 
 			_commitMessageFile = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
 
@@ -27,7 +28,7 @@ namespace VssSvnConverter.Core
 
 		public string WorkingCopy
 		{
-			get { return _workingCopy; }
+			get { return _opts.TfsWorkTreeDir; }
 		}
 
 		public void CleanupWorkingTree()
@@ -36,11 +37,13 @@ namespace VssSvnConverter.Core
 				return;
 
 			_tfHelper.Exec(string.Format("undo . /noprompt /recursive"));
+			CheckWorkingCopyStatus();
 		}
 
 		public void StartRevision()
 		{
-			CheckWorkingCopyStatus();
+			if (!_opts.TfNoCheckStatusBeforeStartRevision)
+				CheckWorkingCopyStatus();
 		}
 
 		void CheckWorkingCopyStatus()

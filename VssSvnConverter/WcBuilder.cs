@@ -24,7 +24,7 @@ namespace VssSvnConverter
 			{
 				if (noPrompt || MessageBox.Show("Work tree will be cleanup", "Confirm", MessageBoxButtons.OKCancel) == DialogResult.OK)
 				{
-					var driver = new TfsDriver(opts.TfExe, opts.TfsWorkTreeDir, Console.Out, false);
+					var driver = new TfsDriver(opts, Console.Out, false);
 					driver.CleanupWorkingTree();
 				}
 			}
