@@ -49,5 +49,32 @@ namespace VssSvnConverter
 		{
 			Importer.StopImport = true;
 		}
+
+		readonly TimeSpan _hung = TimeSpan.FromSeconds(120);
+		bool _hungDetected;
+
+		private void timerHungDetector_Tick(object sender, EventArgs e)
+		{
+			if (_hungDetected)
+			{
+				if (!Importer.DogWatch.HasValue || (DateTimeOffset.Now - Importer.DogWatch.Value) < _hung)
+				{
+					buttonImport.BackColor = Color.White;
+					buttonImportContinue.BackColor = Color.White;
+					_hungDetected = false;
+				}
+			}
+			else
+			{
+				if (Importer.DogWatch.HasValue && (DateTimeOffset.Now - Importer.DogWatch.Value) > _hung)
+				{
+					buttonImport.BackColor = Color.LightPink;
+					buttonImportContinue.BackColor = Color.LightPink;
+					_hungDetected = true;
+
+					Console.WriteLine("HUNG ????");
+				}
+			}
+		}
 	}
 }

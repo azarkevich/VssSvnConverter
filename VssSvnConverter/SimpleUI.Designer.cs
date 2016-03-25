@@ -35,16 +35,17 @@
 			this.button3 = new System.Windows.Forms.Button();
 			this.button4 = new System.Windows.Forms.Button();
 			this.button5 = new System.Windows.Forms.Button();
-			this.button6 = new System.Windows.Forms.Button();
+			this.buttonImport = new System.Windows.Forms.Button();
 			this.button7 = new System.Windows.Forms.Button();
 			this.button8 = new System.Windows.Forms.Button();
 			this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
 			this.button9 = new System.Windows.Forms.Button();
 			this.button10 = new System.Windows.Forms.Button();
 			this.buttonStopImport = new System.Windows.Forms.Button();
-			this.button11 = new System.Windows.Forms.Button();
+			this.buttonImportContinue = new System.Windows.Forms.Button();
 			this.buttonTryCensors = new System.Windows.Forms.Button();
 			this.label1 = new System.Windows.Forms.Label();
+			this.timerHungDetector = new System.Windows.Forms.Timer(this.components);
 			this.SuspendLayout();
 			// 
 			// buttonBuildList
@@ -125,18 +126,18 @@
 			this.button5.UseVisualStyleBackColor = true;
 			this.button5.Click += new System.EventHandler(this.buildList_Click);
 			// 
-			// button6
+			// buttonImport
 			// 
-			this.button6.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+			this.buttonImport.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.button6.Location = new System.Drawing.Point(12, 186);
-			this.button6.Name = "button6";
-			this.button6.Size = new System.Drawing.Size(75, 23);
-			this.button6.TabIndex = 9;
-			this.button6.Tag = "import-new";
-			this.button6.Text = "7. Import";
-			this.button6.UseVisualStyleBackColor = true;
-			this.button6.Click += new System.EventHandler(this.buildList_Click);
+			this.buttonImport.Location = new System.Drawing.Point(12, 186);
+			this.buttonImport.Name = "buttonImport";
+			this.buttonImport.Size = new System.Drawing.Size(75, 23);
+			this.buttonImport.TabIndex = 9;
+			this.buttonImport.Tag = "import-new";
+			this.buttonImport.Text = "7. Import";
+			this.buttonImport.UseVisualStyleBackColor = true;
+			this.buttonImport.Click += new System.EventHandler(this.buildList_Click);
 			// 
 			// button7
 			// 
@@ -203,18 +204,18 @@
 			this.buttonStopImport.UseVisualStyleBackColor = true;
 			this.buttonStopImport.Click += new System.EventHandler(this.buttonStopImport_Click);
 			// 
-			// button11
+			// buttonImportContinue
 			// 
-			this.button11.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+			this.buttonImportContinue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.button11.Location = new System.Drawing.Point(93, 186);
-			this.button11.Name = "button11";
-			this.button11.Size = new System.Drawing.Size(110, 23);
-			this.button11.TabIndex = 10;
-			this.button11.Tag = "import";
-			this.button11.Text = "7. Import (continue)";
-			this.button11.UseVisualStyleBackColor = true;
-			this.button11.Click += new System.EventHandler(this.buildList_Click);
+			this.buttonImportContinue.Location = new System.Drawing.Point(93, 186);
+			this.buttonImportContinue.Name = "buttonImportContinue";
+			this.buttonImportContinue.Size = new System.Drawing.Size(110, 23);
+			this.buttonImportContinue.TabIndex = 10;
+			this.buttonImportContinue.Tag = "import";
+			this.buttonImportContinue.Text = "7. Import (continue)";
+			this.buttonImportContinue.UseVisualStyleBackColor = true;
+			this.buttonImportContinue.Click += new System.EventHandler(this.buildList_Click);
 			// 
 			// buttonTryCensors
 			// 
@@ -236,6 +237,11 @@
 			this.label1.TabIndex = 13;
 			this.label1.Text = "Test:";
 			// 
+			// timerHungDetector
+			// 
+			this.timerHungDetector.Interval = 1000;
+			this.timerHungDetector.Tick += new System.EventHandler(this.timerHungDetector_Tick);
+			// 
 			// SimpleUI
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -244,11 +250,11 @@
 			this.Controls.Add(this.buttonStopImport);
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.buttonTryCensors);
-			this.Controls.Add(this.button11);
+			this.Controls.Add(this.buttonImportContinue);
 			this.Controls.Add(this.button10);
 			this.Controls.Add(this.button9);
 			this.Controls.Add(this.button7);
-			this.Controls.Add(this.button6);
+			this.Controls.Add(this.buttonImport);
 			this.Controls.Add(this.button5);
 			this.Controls.Add(this.button4);
 			this.Controls.Add(this.button3);
@@ -274,15 +280,16 @@
 		private System.Windows.Forms.Button button3;
 		private System.Windows.Forms.Button button4;
 		private System.Windows.Forms.Button button5;
-		private System.Windows.Forms.Button button6;
+		private System.Windows.Forms.Button buttonImport;
 		private System.Windows.Forms.Button button7;
 		private System.Windows.Forms.Button button8;
 		private System.Windows.Forms.ToolTip toolTip1;
 		private System.Windows.Forms.Button button9;
 		private System.Windows.Forms.Button button10;
-		private System.Windows.Forms.Button button11;
+		private System.Windows.Forms.Button buttonImportContinue;
 		private System.Windows.Forms.Button buttonTryCensors;
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Button buttonStopImport;
+		private System.Windows.Forms.Timer timerHungDetector;
 	}
 }

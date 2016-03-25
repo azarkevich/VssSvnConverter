@@ -34,10 +34,12 @@ namespace VssSvnConverter
 		IList<CensoreGroup> _censors;
 
 		public static volatile bool StopImport;
+		public static DateTimeOffset? DogWatch;
 
 		public void Import(Options opts, List<Commit> commits, bool startNewSession)
 		{
 			StopImport = false;
+			DogWatch = DateTimeOffset.Now;
 
 			if(startNewSession && File.Exists(DataFileName))
 				File.Delete(DataFileName);
@@ -111,11 +113,19 @@ namespace VssSvnConverter
 
 						Console.WriteLine("[{2,6}/{3}] Import: {0:yyyy-MMM-dd HH:ss:mm}, by {1}", c.At, c.User, i, commits.Count);
 
+						DogWatch = DateTimeOffset.Now;
+
 						driver.StartRevision();
+
+						DogWatch = DateTimeOffset.Now;
 
 						LoadRevision(driver, c, log);
 
+						DogWatch = DateTimeOffset.Now;
+
 						driver.CommitRevision(commits[i].User, c.Comment, commits[i].At);
+
+						DogWatch = DateTimeOffset.Now;
 
 						// OK
 						File.AppendAllText(DataFileName, i + "\n");
@@ -130,6 +140,8 @@ namespace VssSvnConverter
 					throw;
 				}
 			}
+
+			DogWatch = null;
 
 			if (StopImport)
 			{
