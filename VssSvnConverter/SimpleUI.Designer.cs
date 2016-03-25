@@ -81,7 +81,7 @@
 			this.button2.Size = new System.Drawing.Size(226, 23);
 			this.button2.TabIndex = 3;
 			this.button2.Tag = "build-links";
-			this.button2.Text = "3. Build links";
+			this.button2.Text = "3. Build links info";
 			this.button2.UseVisualStyleBackColor = true;
 			this.button2.Click += new System.EventHandler(this.buildList_Click);
 			// 
