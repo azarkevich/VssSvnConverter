@@ -17,7 +17,12 @@ namespace VssSvnConverter
 		{
 			var btn = (Button)sender;
 			btn.BackColor = Color.Yellow;
-			Controls.Cast<Control>().ToList().ForEach(c => c.Enabled = false);
+			Controls
+				.Cast<Control>()
+				.Where(c => (c.Tag as string) != "import-stop")
+				.ToList()
+				.ForEach(c => c.Enabled = false)
+			;
 
 			new Thread(() => {
 				Color color;
@@ -38,6 +43,11 @@ namespace VssSvnConverter
 				};
 				Invoke(action);
 			}).Start();
+		}
+
+		void buttonStopImport_Click(object sender, EventArgs e)
+		{
+			Importer.StopImport = true;
 		}
 	}
 }

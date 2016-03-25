@@ -33,8 +33,12 @@ namespace VssSvnConverter
 
 		IList<CensoreGroup> _censors;
 
+		public static volatile bool StopImport;
+
 		public void Import(Options opts, List<Commit> commits, bool startNewSession)
 		{
+			StopImport = false;
+
 			if(startNewSession && File.Exists(DataFileName))
 				File.Delete(DataFileName);
 
@@ -115,6 +119,9 @@ namespace VssSvnConverter
 
 						// OK
 						File.AppendAllText(DataFileName, i + "\n");
+
+						if (StopImport)
+							break;
 					}
 				}
 				catch (Exception ex)
@@ -123,7 +130,15 @@ namespace VssSvnConverter
 					throw;
 				}
 			}
-			Console.WriteLine("Import complete.");
+
+			if (StopImport)
+			{
+				Console.WriteLine("Import interrupted.");
+			}
+			else
+			{
+				Console.WriteLine("Import complete.");
+			}
 		}
 
 		public static List<CensoreGroup> LoadCensors(Options opts)

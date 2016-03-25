@@ -41,6 +41,7 @@
 			this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
 			this.button9 = new System.Windows.Forms.Button();
 			this.button10 = new System.Windows.Forms.Button();
+			this.buttonStopImport = new System.Windows.Forms.Button();
 			this.button11 = new System.Windows.Forms.Button();
 			this.buttonTryCensors = new System.Windows.Forms.Button();
 			this.label1 = new System.Windows.Forms.Label();
@@ -130,7 +131,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.button6.Location = new System.Drawing.Point(12, 186);
 			this.button6.Name = "button6";
-			this.button6.Size = new System.Drawing.Size(93, 23);
+			this.button6.Size = new System.Drawing.Size(75, 23);
 			this.button6.TabIndex = 9;
 			this.button6.Tag = "import-new";
 			this.button6.Text = "7. Import";
@@ -144,7 +145,7 @@
 			this.button7.Location = new System.Drawing.Point(12, 215);
 			this.button7.Name = "button7";
 			this.button7.Size = new System.Drawing.Size(226, 23);
-			this.button7.TabIndex = 11;
+			this.button7.TabIndex = 12;
 			this.button7.Tag = "build-scripts";
 			this.button7.Text = "8. Build scripts";
 			this.button7.UseVisualStyleBackColor = true;
@@ -188,13 +189,27 @@
 			this.button10.UseVisualStyleBackColor = true;
 			this.button10.Click += new System.EventHandler(this.buildList_Click);
 			// 
+			// buttonStopImport
+			// 
+			this.buttonStopImport.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonStopImport.Location = new System.Drawing.Point(209, 186);
+			this.buttonStopImport.Name = "buttonStopImport";
+			this.buttonStopImport.Size = new System.Drawing.Size(29, 23);
+			this.buttonStopImport.TabIndex = 11;
+			this.buttonStopImport.Tag = "import-stop";
+			this.buttonStopImport.Text = "S";
+			this.toolTip1.SetToolTip(this.buttonStopImport, "Stop import after next commit");
+			this.buttonStopImport.UseVisualStyleBackColor = true;
+			this.buttonStopImport.Click += new System.EventHandler(this.buttonStopImport_Click);
+			// 
 			// button11
 			// 
 			this.button11.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.button11.Location = new System.Drawing.Point(111, 186);
+			this.button11.Location = new System.Drawing.Point(93, 186);
 			this.button11.Name = "button11";
-			this.button11.Size = new System.Drawing.Size(127, 23);
+			this.button11.Size = new System.Drawing.Size(110, 23);
 			this.button11.TabIndex = 10;
 			this.button11.Tag = "import";
 			this.button11.Text = "7. Import (continue)";
@@ -206,7 +221,7 @@
 			this.buttonTryCensors.Location = new System.Drawing.Point(12, 265);
 			this.buttonTryCensors.Name = "buttonTryCensors";
 			this.buttonTryCensors.Size = new System.Drawing.Size(226, 23);
-			this.buttonTryCensors.TabIndex = 12;
+			this.buttonTryCensors.TabIndex = 14;
 			this.buttonTryCensors.Tag = "try-censors";
 			this.buttonTryCensors.Text = "Try Censore";
 			this.buttonTryCensors.UseVisualStyleBackColor = true;
@@ -226,6 +241,7 @@
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(250, 300);
+			this.Controls.Add(this.buttonStopImport);
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.buttonTryCensors);
 			this.Controls.Add(this.button11);
@@ -267,5 +283,6 @@
 		private System.Windows.Forms.Button button11;
 		private System.Windows.Forms.Button buttonTryCensors;
 		private System.Windows.Forms.Label label1;
+		private System.Windows.Forms.Button buttonStopImport;
 	}
 }
