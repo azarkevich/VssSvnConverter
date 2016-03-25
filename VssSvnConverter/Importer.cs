@@ -35,6 +35,9 @@ namespace VssSvnConverter
 
 		public void Import(Options opts, List<Commit> commits, bool startNewSession)
 		{
+			if(startNewSession && File.Exists(DataFileName))
+				File.Delete(DataFileName);
+
 			_opts = opts;
 
 			_unimportants = opts
@@ -86,7 +89,7 @@ namespace VssSvnConverter
 					}
 					else if (opts.ImportDriver == "tfs")
 					{
-						driver = new TfsDriver(opts.TfExe, opts.TfsWorkTreeDir, log);
+						driver = new TfsDriver(opts.TfExe, opts.TfsWorkTreeDir, log, true);
 					}
 					else
 					{

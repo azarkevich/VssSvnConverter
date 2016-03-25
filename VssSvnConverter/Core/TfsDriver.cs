@@ -13,7 +13,7 @@ namespace VssSvnConverter.Core
 		readonly string _workingCopy;
 		readonly string _commitMessageFile;
 
-		public TfsDriver(string tfPath, string workingCopy, TextWriter log)
+		public TfsDriver(string tfPath, string workingCopy, TextWriter log, bool checkWcStatus)
 		{
 			_workingCopy = workingCopy;
 			_tfHelper = new TfExecHelper(tfPath, workingCopy, log);
@@ -21,7 +21,8 @@ namespace VssSvnConverter.Core
 
 			_commitMessageFile = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
 
-			CheckWorkingCopyStatus();
+			if (checkWcStatus)
+				CheckWorkingCopyStatus();
 		}
 
 		public string WorkingCopy

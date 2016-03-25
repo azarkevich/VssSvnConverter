@@ -9,14 +9,13 @@ namespace VssSvnConverter
 	{
 		public void Build(Options opts, bool noPrompt)
 		{
-			File.WriteAllText(Importer.DataFileName, "0\n");
-
 			if (opts.ImportDriver == "git")
 			{
 				if (!opts.IsGitRepoDirExternal)
 				{
 					if (noPrompt || MessageBox.Show("Repository and work tree will be recreated", "Confirm", MessageBoxButtons.OKCancel) == DialogResult.OK)
 					{
+						File.WriteAllText(Importer.DataFileName, "0\n");
 						GitDriver.Create(opts.GitExe, opts.GitRepoDir);
 					}
 				}
@@ -25,7 +24,7 @@ namespace VssSvnConverter
 			{
 				if (noPrompt || MessageBox.Show("Work tree will be cleanup", "Confirm", MessageBoxButtons.OKCancel) == DialogResult.OK)
 				{
-					var driver = new TfsDriver(opts.TfExe, opts.TfsWorkTreeDir, Console.Out);
+					var driver = new TfsDriver(opts.TfExe, opts.TfsWorkTreeDir, Console.Out, false);
 					driver.CleanupWorkingTree();
 				}
 			}
@@ -42,6 +41,7 @@ namespace VssSvnConverter
 				{
 					if (noPrompt || MessageBox.Show("Repository and Working copy will be recreated", "Confirm", MessageBoxButtons.OKCancel) == DialogResult.OK)
 					{
+						File.WriteAllText(Importer.DataFileName, "0\n");
 						SvnDriver.CreateRepo(opts.SvnRepoUrl);
 						SvnDriver.Checkout(opts.SvnRepoUrl, opts.SvnWorkTreeDir);
 					}
