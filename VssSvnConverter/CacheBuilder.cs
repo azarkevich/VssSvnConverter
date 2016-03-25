@@ -24,6 +24,7 @@ namespace VssSvnConverter
 		IVSSDatabase _db;
 		VssFileCache _cache;
 		StreamWriter _log;
+		string _tempDir;
 
 		readonly Options _options;
 
@@ -144,6 +145,9 @@ namespace VssSvnConverter
 		public void Build(List<FileRevision> versions)
 		{
 			var sw = Stopwatch.StartNew();
+
+			_tempDir = Path.Combine(Environment.CurrentDirectory, "vss-temp");
+			Directory.CreateDirectory(_tempDir);
 
 			_db = _options.DB.Value;
 			var originalVersions = versions.ToList();
@@ -361,10 +365,8 @@ namespace VssSvnConverter
 
 		void GetFromVss(FileRevision file)
 		{
-			var tempDir = Path.Combine(Environment.CurrentDirectory, "vss-temp");
-
 			// clean destination
-			foreach (var tempFile in Directory.GetFiles(tempDir, "*", SearchOption.AllDirectories))
+			foreach (var tempFile in Directory.GetFiles(_tempDir, "*", SearchOption.AllDirectories))
 			{
 				try
 				{
@@ -387,7 +389,7 @@ namespace VssSvnConverter
 
 				var dstFileName = Path.GetFileName(file.FileSpec.TrimStart('$', '/', '\\'));
 
-				var path = Path.Combine(tempDir, Guid.NewGuid().ToString("N") + "-" + dstFileName);
+				var path = Path.Combine(_tempDir, Guid.NewGuid().ToString("N") + "-" + dstFileName);
 
 				try
 				{
@@ -408,7 +410,7 @@ namespace VssSvnConverter
 
 					Console.WriteLine("\nPhysical file mismatch. Try get with ss.exe");
 
-					path = new SSExeHelper(_options.SSPath, _log).Get(file.FileSpec, file.VssVersion, tempDir);
+					path = new SSExeHelper(_options.SSPath, _log).Get(file.FileSpec, file.VssVersion, _tempDir);
 					if (path == null)
 					{
 						Console.WriteLine("Get with ss.exe failed");
