@@ -66,6 +66,9 @@ namespace VssSvnConverter
 					tw.WriteLine();
 				}
 			}
+
+			Console.WriteLine("VSS links: {0} pcs", xrefs.Map.Count);
+			Console.WriteLine("Checkouts: {0} pcs", xrefsCo.Map.Count);
 		}
 	}
 }
