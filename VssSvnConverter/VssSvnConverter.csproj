@@ -58,7 +58,6 @@
     <Compile Include="Core\Commit.cs" />
     <Compile Include="Core\EnumerableExtensions.cs" />
     <Compile Include="Core\ExecHelper.cs" />
-    <Compile Include="Core\TfExecHelper.cs" />
     <Compile Include="Core\GitExecHelper.cs" />
     <Compile Include="Core\TfsDriver.cs" />
     <Compile Include="ext\FileCache.cs" />

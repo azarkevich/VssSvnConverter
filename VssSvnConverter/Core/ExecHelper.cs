@@ -40,13 +40,15 @@ namespace VssSvnConverter.Core
 		readonly TextWriter _log;
 		readonly bool _validate;
 		readonly TimeSpan? _hungDetection;
+		readonly bool _restartOnHung;
 
-		public ExecHelper(string exe, TextWriter log, bool validate, TimeSpan? hungDetection = null)
+		public ExecHelper(string exe, TextWriter log, bool validate, TimeSpan? hungDetection = null, bool restartOnHung = false)
 		{
 			_log = log;
 			_validate = validate;
 			_exe = exe;
 			_hungDetection = hungDetection;
+			_restartOnHung = restartOnHung;
 		}
 
 		public static void ValidateResult(ExecResult r, string args)
@@ -77,7 +79,15 @@ namespace VssSvnConverter.Core
 				}
 				catch (OperationCanceledException)
 				{
-					_log.WriteLine("WARNING: Process hung. Restart");
+					if (_restartOnHung)
+					{
+						_log.WriteLine("WARNING: Process hung. Restart");
+					}
+					else
+					{
+						_log.WriteLine("WARNING: Process hung. Exception");
+						throw;
+					}
 				}
 			}
 		}
