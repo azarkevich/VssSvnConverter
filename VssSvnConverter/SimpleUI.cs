@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using VssSvnConverter.Core;
 
 namespace VssSvnConverter
 {
@@ -11,6 +14,15 @@ namespace VssSvnConverter
 		public SimpleUI()
 		{
 			InitializeComponent();
+
+			var cfg = Program.GetConfigPath();
+			fileSystemConfigWatcher.Path = Path.GetDirectoryName(cfg);
+			fileSystemConfigWatcher.Filter = Path.GetFileName(cfg);
+		}
+
+		private void SimpleUI_Load(object sender, EventArgs e)
+		{
+			ReparseConfig();
 		}
 
 		private void buildList_Click(object sender, EventArgs e)
@@ -75,6 +87,20 @@ namespace VssSvnConverter
 					Console.WriteLine("HUNG ????");
 				}
 			}
+		}
+
+		async void fileSystemConfigWatcher_Changed(object sender, FileSystemEventArgs e)
+		{
+			await Task.Delay(500);
+			ReparseConfig();
+		}
+
+		void ReparseConfig()
+		{
+			var opts = new Options(new string[0]);
+			opts.ReadConfig(Program.GetConfigPath());
+
+			labelActiveDriver.Text = string.Format("Active driver: {0}", opts.ImportDriver);
 		}
 	}
 }

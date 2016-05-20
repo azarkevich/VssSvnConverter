@@ -78,12 +78,17 @@ namespace VssSvnConverter
 			return 0;
 		}
 
+		public static string GetConfigPath()
+		{
+			return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "VssSvnConverter.conf");
+		}
+
 		public static void ProcessStage(string verb, bool noPrompt)
 		{
 			Console.WriteLine("*** Stage: " + verb + " ***");
 
 			// read config
-			_opts.ReadConfig(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "VssSvnConverter.conf"));
+			_opts.ReadConfig(GetConfigPath());
 
 			switch (verb)
 			{

@@ -34,7 +34,7 @@
 			this.button2 = new System.Windows.Forms.Button();
 			this.button3 = new System.Windows.Forms.Button();
 			this.button4 = new System.Windows.Forms.Button();
-			this.button5 = new System.Windows.Forms.Button();
+			this.buttonCleanupWC = new System.Windows.Forms.Button();
 			this.buttonImport = new System.Windows.Forms.Button();
 			this.button7 = new System.Windows.Forms.Button();
 			this.button8 = new System.Windows.Forms.Button();
@@ -46,6 +46,9 @@
 			this.buttonTryCensors = new System.Windows.Forms.Button();
 			this.label1 = new System.Windows.Forms.Label();
 			this.timerHungDetector = new System.Windows.Forms.Timer(this.components);
+			this.fileSystemConfigWatcher = new System.IO.FileSystemWatcher();
+			this.labelActiveDriver = new System.Windows.Forms.Label();
+			((System.ComponentModel.ISupportInitialize)(this.fileSystemConfigWatcher)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// buttonBuildList
@@ -113,24 +116,24 @@
 			this.button4.UseVisualStyleBackColor = true;
 			this.button4.Click += new System.EventHandler(this.buildList_Click);
 			// 
-			// button5
+			// buttonCleanupWC
 			// 
-			this.button5.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+			this.buttonCleanupWC.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.button5.Location = new System.Drawing.Point(12, 157);
-			this.button5.Name = "button5";
-			this.button5.Size = new System.Drawing.Size(226, 23);
-			this.button5.TabIndex = 8;
-			this.button5.Tag = "build-wc";
-			this.button5.Text = "6. Build/cleanup wc";
-			this.button5.UseVisualStyleBackColor = true;
-			this.button5.Click += new System.EventHandler(this.buildList_Click);
+			this.buttonCleanupWC.Location = new System.Drawing.Point(12, 174);
+			this.buttonCleanupWC.Name = "buttonCleanupWC";
+			this.buttonCleanupWC.Size = new System.Drawing.Size(226, 23);
+			this.buttonCleanupWC.TabIndex = 8;
+			this.buttonCleanupWC.Tag = "build-wc";
+			this.buttonCleanupWC.Text = "6. Build/cleanup wc";
+			this.buttonCleanupWC.UseVisualStyleBackColor = true;
+			this.buttonCleanupWC.Click += new System.EventHandler(this.buildList_Click);
 			// 
 			// buttonImport
 			// 
 			this.buttonImport.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonImport.Location = new System.Drawing.Point(12, 186);
+			this.buttonImport.Location = new System.Drawing.Point(12, 203);
 			this.buttonImport.Name = "buttonImport";
 			this.buttonImport.Size = new System.Drawing.Size(75, 23);
 			this.buttonImport.TabIndex = 9;
@@ -143,7 +146,7 @@
 			// 
 			this.button7.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.button7.Location = new System.Drawing.Point(12, 215);
+			this.button7.Location = new System.Drawing.Point(12, 232);
 			this.button7.Name = "button7";
 			this.button7.Size = new System.Drawing.Size(226, 23);
 			this.button7.TabIndex = 12;
@@ -194,7 +197,7 @@
 			// 
 			this.buttonStopImport.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonStopImport.Location = new System.Drawing.Point(209, 186);
+			this.buttonStopImport.Location = new System.Drawing.Point(209, 203);
 			this.buttonStopImport.Name = "buttonStopImport";
 			this.buttonStopImport.Size = new System.Drawing.Size(29, 23);
 			this.buttonStopImport.TabIndex = 11;
@@ -208,7 +211,7 @@
 			// 
 			this.buttonImportContinue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonImportContinue.Location = new System.Drawing.Point(93, 186);
+			this.buttonImportContinue.Location = new System.Drawing.Point(93, 203);
 			this.buttonImportContinue.Name = "buttonImportContinue";
 			this.buttonImportContinue.Size = new System.Drawing.Size(110, 23);
 			this.buttonImportContinue.TabIndex = 10;
@@ -219,7 +222,7 @@
 			// 
 			// buttonTryCensors
 			// 
-			this.buttonTryCensors.Location = new System.Drawing.Point(12, 265);
+			this.buttonTryCensors.Location = new System.Drawing.Point(12, 282);
 			this.buttonTryCensors.Name = "buttonTryCensors";
 			this.buttonTryCensors.Size = new System.Drawing.Size(226, 23);
 			this.buttonTryCensors.TabIndex = 14;
@@ -231,7 +234,7 @@
 			// label1
 			// 
 			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(12, 249);
+			this.label1.Location = new System.Drawing.Point(12, 266);
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(31, 13);
 			this.label1.TabIndex = 13;
@@ -242,11 +245,28 @@
 			this.timerHungDetector.Interval = 1000;
 			this.timerHungDetector.Tick += new System.EventHandler(this.timerHungDetector_Tick);
 			// 
+			// fileSystemConfigWatcher
+			// 
+			this.fileSystemConfigWatcher.EnableRaisingEvents = true;
+			this.fileSystemConfigWatcher.SynchronizingObject = this;
+			this.fileSystemConfigWatcher.Changed += new System.IO.FileSystemEventHandler(this.fileSystemConfigWatcher_Changed);
+			this.fileSystemConfigWatcher.Created += new System.IO.FileSystemEventHandler(this.fileSystemConfigWatcher_Changed);
+			// 
+			// labelActiveDriver
+			// 
+			this.labelActiveDriver.AutoSize = true;
+			this.labelActiveDriver.Location = new System.Drawing.Point(12, 158);
+			this.labelActiveDriver.Name = "labelActiveDriver";
+			this.labelActiveDriver.Size = new System.Drawing.Size(69, 13);
+			this.labelActiveDriver.TabIndex = 15;
+			this.labelActiveDriver.Text = "Active driver:";
+			// 
 			// SimpleUI
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(250, 300);
+			this.ClientSize = new System.Drawing.Size(250, 316);
+			this.Controls.Add(this.labelActiveDriver);
 			this.Controls.Add(this.buttonStopImport);
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.buttonTryCensors);
@@ -255,7 +275,7 @@
 			this.Controls.Add(this.button9);
 			this.Controls.Add(this.button7);
 			this.Controls.Add(this.buttonImport);
-			this.Controls.Add(this.button5);
+			this.Controls.Add(this.buttonCleanupWC);
 			this.Controls.Add(this.button4);
 			this.Controls.Add(this.button3);
 			this.Controls.Add(this.button2);
@@ -267,6 +287,8 @@
 			this.ShowIcon = false;
 			this.Text = "Converter";
 			this.TopMost = true;
+			this.Load += new System.EventHandler(this.SimpleUI_Load);
+			((System.ComponentModel.ISupportInitialize)(this.fileSystemConfigWatcher)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -279,7 +301,7 @@
 		private System.Windows.Forms.Button button2;
 		private System.Windows.Forms.Button button3;
 		private System.Windows.Forms.Button button4;
-		private System.Windows.Forms.Button button5;
+		private System.Windows.Forms.Button buttonCleanupWC;
 		private System.Windows.Forms.Button buttonImport;
 		private System.Windows.Forms.Button button7;
 		private System.Windows.Forms.Button button8;
@@ -291,5 +313,7 @@
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Button buttonStopImport;
 		private System.Windows.Forms.Timer timerHungDetector;
+		private System.IO.FileSystemWatcher fileSystemConfigWatcher;
+		private System.Windows.Forms.Label labelActiveDriver;
 	}
 }
