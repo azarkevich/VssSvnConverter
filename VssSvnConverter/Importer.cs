@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
+using Microsoft.SqlServer.Server;
 using vsslib;
 using VssSvnConverter.Core;
 
@@ -150,6 +151,11 @@ namespace VssSvnConverter
 			else
 			{
 				Console.WriteLine("Import complete.");
+
+				if (opts.ImportDriver == "git" && !string.IsNullOrWhiteSpace(opts.GitStartAfterImport))
+				{
+					Process.Start(opts.GitStartAfterImport, opts.GitStartAfterImportArgs.Replace("%REPODIR%", opts.GitRepoDir));
+				}
 			}
 		}
 
