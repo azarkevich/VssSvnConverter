@@ -110,7 +110,25 @@ namespace VssSvnConverter
 
 							var user = ver.Username.ToLowerInvariant();
 
-							var fileVersionInfo = new FileRevision { FileSpec = item.Spec, At = ver.Date.ToUniversalTime(), Comment = ver.Comment, VssVersion = ver.VersionNumber, User = user, Physical = ver.VSSItem.Physical };
+							var fileVersionInfo = new FileRevision {
+								FileSpec = item.Spec,
+								At = ver.Date.ToUniversalTime(),
+								Comment = ver.Comment,
+								VssVersion = ver.VersionNumber,
+								User = user
+							};
+							try
+							{
+								// can throw exception, but it is not critical
+								fileVersionInfo.Physical = ver.VSSItem.Physical;
+							}
+							catch (Exception ex)
+							{
+								Console.WriteLine("ERROR: Get Physical: " + ex.Message);
+								log.WriteLine("ERROR: Get Physical: {0}", spec);
+								log.WriteLine(ex.ToString());
+								fileVersionInfo.Physical = "_UNKNOWN_";
+							}
 							itemRevisions.Add(fileVersionInfo);
 
 							Console.Write('.');
@@ -157,6 +175,7 @@ namespace VssSvnConverter
 					}
 					catch(Exception ex)
 					{
+						Console.WriteLine("ERROR: {0}", spec);
 						log.WriteLine("ERROR: {0}", spec);
 						log.WriteLine(ex.ToString());
 					}
