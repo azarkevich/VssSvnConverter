@@ -95,6 +95,8 @@ namespace VssSvnConverter
 						var rotationIndex = 0;
 						var rotationArray = @"|/-\|/-\".ToCharArray();
 
+						var latestOnly = IsLatestOnly(opts, spec);
+
 						var itemRevisions = new List<FileRevision>();
 						foreach (IVSSVersion ver in item.Versions)
 						{
@@ -130,6 +132,9 @@ namespace VssSvnConverter
 								fileVersionInfo.Physical = "_UNKNOWN_";
 							}
 							itemRevisions.Add(fileVersionInfo);
+
+							if (latestOnly)
+								break;
 
 							Console.Write('.');
 						}
@@ -184,6 +189,11 @@ namespace VssSvnConverter
 
 			stopWatch.Stop();
 			Console.WriteLine("Build files versions list complete. Take: {0}", stopWatch.Elapsed);
+		}
+
+		bool IsLatestOnly(Options opts, string spec)
+		{
+			return opts.LatestOnly.Contains(spec) || opts.LatestOnlyRx.Any(rx => rx.IsMatch(spec));
 		}
 
 		static void Save(TextWriter wr, IEnumerable<FileRevision> r)
