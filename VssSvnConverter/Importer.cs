@@ -7,7 +7,6 @@ using System.Text.RegularExpressions;
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
-using Microsoft.SqlServer.Server;
 using vsslib;
 using VssSvnConverter.Core;
 
@@ -37,7 +36,7 @@ namespace VssSvnConverter
 		public static volatile bool StopImport;
 		public static DateTimeOffset? DogWatch;
 
-		public void Import(Options opts, List<Commit> commits, bool startNewSession)
+		public void Import(Options opts, List<Commit> commits, bool startNewSession, Action<float> progress = null)
 		{
 			StopImport = false;
 			DogWatch = DateTimeOffset.Now;
@@ -113,6 +112,8 @@ namespace VssSvnConverter
 						var c = commits[i];
 
 						Console.WriteLine("[{2,6}/{3}] Import: {0:yyyy-MMM-dd HH:ss:mm}, by {1}", c.At, c.User, i, commits.Count);
+						if (progress != null)
+							progress((float)i / commits.Count);
 
 						DogWatch = DateTimeOffset.Now;
 

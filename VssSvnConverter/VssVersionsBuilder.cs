@@ -57,7 +57,7 @@ namespace VssSvnConverter
 			return list;
 		}
 
-		public void Build(Options opts, IList<Tuple<string, int>> files)
+		public void Build(Options opts, IList<Tuple<string, int>> files, Action<float> progress = null)
 		{
 			var stopWatch = new Stopwatch();
 			stopWatch.Start();
@@ -91,6 +91,8 @@ namespace VssSvnConverter
 						}
 
 						Console.Write("[{0,5}/{1,5}] {2} ", findex, files.Count, item.Spec);
+						if (progress != null)
+							progress((float)findex / files.Count);
 
 						var rotationIndex = 0;
 						var rotationArray = @"|/-\|/-\".ToCharArray();

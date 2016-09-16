@@ -83,7 +83,7 @@ namespace VssSvnConverter
 			return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "VssSvnConverter.conf");
 		}
 
-		public static void ProcessStage(string verb, bool noPrompt)
+		public static void ProcessStage(string verb, bool noPrompt, Action<float> progress = null)
 		{
 			Console.WriteLine("*** Stage: " + verb + " ***");
 
@@ -109,7 +109,7 @@ namespace VssSvnConverter
 					break;
 
 				case "build-versions":
-					new VssVersionsBuilder().Build(_opts, new ImportListBuilder().Load());
+					new VssVersionsBuilder().Build(_opts, new ImportListBuilder().Load(), progress);
 					Console.WriteLine("Next: build-cache");
 					break;
 
@@ -119,7 +119,7 @@ namespace VssSvnConverter
 					break;
 
 				case "build-cache":
-					new CacheBuilder(_opts).Build(new VssVersionsBuilder().Load());
+					new CacheBuilder(_opts).Build(new VssVersionsBuilder().Load(), progress);
 					Console.WriteLine("Next: build-commits");
 					break;
 
@@ -144,11 +144,11 @@ namespace VssSvnConverter
 					break;
 
 				case "import-new":
-					new Importer().Import(_opts, new CommitsBuilder().Load(), true);
+					new Importer().Import(_opts, new CommitsBuilder().Load(), true, progress);
 					break;
 
 				case "import":
-					new Importer().Import(_opts, new CommitsBuilder().Load(), false);
+					new Importer().Import(_opts, new CommitsBuilder().Load(), false, progress);
 					break;
 
 				case "build-scripts":

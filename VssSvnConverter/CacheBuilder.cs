@@ -142,7 +142,7 @@ namespace VssSvnConverter
 			}
 		}
 
-		public void Build(List<FileRevision> versions)
+		public void Build(List<FileRevision> versions, Action<float> progress = null)
 		{
 			var sw = Stopwatch.StartNew();
 
@@ -216,6 +216,8 @@ namespace VssSvnConverter
 						var fileGroup = fileGroups[j];
 
 						Console.Write("[{0}/{1}] Get: {3,5} x {2}", j, fileGroups.Count, fileGroup.Key, fileGroup.Count());
+						if (progress != null)
+							progress((float)j / fileGroups.Count);
 
 						foreach (var fg in fileGroup)
 						{

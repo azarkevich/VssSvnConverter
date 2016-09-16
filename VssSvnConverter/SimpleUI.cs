@@ -11,6 +11,8 @@ namespace VssSvnConverter
 {
 	public partial class SimpleUI : Form
 	{
+		readonly Brush _progressBrush = new SolidBrush(Color.FromArgb(50, Color.ForestGreen));
+
 		public SimpleUI()
 		{
 			InitializeComponent();
@@ -36,11 +38,34 @@ namespace VssSvnConverter
 				.ForEach(c => c.Enabled = false)
 			;
 
+			// progress tracker
+			var currentProgressValue = 0;
+			Action<float> trackProgress = v => {
+
+				var newProgressValue = (int)(v * 1000);
+				if (currentProgressValue != newProgressValue)
+				{
+					currentProgressValue = newProgressValue;
+					btn.Invalidate();
+				}
+			};
+
+			PaintEventHandler progressPainter = (o, paintArgs) => {
+
+				var rect = RectangleF.Inflate(paintArgs.ClipRectangle, -3, -3);
+
+				// shape to progress
+				rect = new RectangleF(rect.Location, new SizeF((int)(rect.Width * currentProgressValue / 1000.0), rect.Height));
+
+				paintArgs.Graphics.FillRectangle(_progressBrush, rect);
+			};
+			btn.Paint += progressPainter;
+
 			new Thread(() => {
 				Color color;
 				try
 				{
-					Program.ProcessStage(btn.Tag as string, false);
+					Program.ProcessStage(btn.Tag as string, false, trackProgress);
 					color = Color.PaleGreen;
 				}
 				catch (Exception ex)
@@ -50,8 +75,10 @@ namespace VssSvnConverter
 				}
 
 				Action action = () => {
+					btn.Paint -= progressPainter;
 					btn.BackColor = color;
 					Controls.Cast<Control>().ToList().ForEach(c => c.Enabled = true);
+					btn.Invalidate();
 				};
 				Invoke(action);
 			}).Start();
@@ -101,6 +128,11 @@ namespace VssSvnConverter
 			opts.ReadConfig(Program.GetConfigPath());
 
 			labelActiveDriver.Text = string.Format("Active driver: {0}", opts.ImportDriver);
+		}
+
+		private void buttonBuildVersions_Paint(object sender, PaintEventArgs e)
+		{
+
 		}
 	}
 }
