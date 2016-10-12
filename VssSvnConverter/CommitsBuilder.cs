@@ -64,6 +64,35 @@ namespace VssSvnConverter
 			if(File.Exists(DataFileName))
 				File.Delete(DataFileName);
 
+			if (opts.UnimportantCheckinCommentRx.Length > 0)
+			{
+				// find unimportant revisons
+				var unimportant = versions
+					.Where(r => opts.UnimportantCheckinCommentRx.Any(rx => rx.IsMatch(r.Comment)))
+					.ToList()
+				;
+
+				// if unimportant revision is most recent - keep it
+				var keep = new List<FileRevision>();
+				foreach (var g in unimportant.ToList().GroupBy(r => r.FileSpec))
+				{
+					var maxRev = versions.Where(r => r.FileSpec == g.Key).Max(r => r.VssVersion);
+
+					// try find unimportant with most recent revision. this revision should be kept
+					var keepIt = g.FirstOrDefault(r => r.VssVersion == maxRev);
+					if (keepIt != null)
+						keep.Add(keepIt);
+				}
+
+				keep.ForEach(r => unimportant.Remove(r));
+
+				// remove unimportant
+				foreach (var r in unimportant)
+				{
+					versions.Remove(r);
+				}
+			}
+
 			var orderedRevisions = versions
 				.OrderBy(r => r.At)
 				.ThenBy(r => r.VssVersion)

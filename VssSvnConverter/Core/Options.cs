@@ -44,6 +44,8 @@ namespace VssSvnConverter.Core
 		public bool UserMappingStrict;
 		public bool CommentAddCommitNumber;
 
+		public Regex[] UnimportantCheckinCommentRx;
+
 		// import
 
 		// git tfs svn
@@ -142,6 +144,11 @@ namespace VssSvnConverter.Core
 				.DefaultIfEmpty("false")
 				.Select(bool.Parse)
 				.First()
+			;
+
+			UnimportantCheckinCommentRx = Config["unimportant-checkin-comment-rx"]
+				.Select(s => new Regex(s, RegexOptions.IgnoreCase))
+				.ToArray()
 			;
 
 			UserMappingStrict = Config["user-mapping-strict"]

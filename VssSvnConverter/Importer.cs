@@ -21,7 +21,7 @@ namespace VssSvnConverter
 
 		Options _opts;
 
-		ILookup<string, Regex> _unimportants;
+		List<Tuple<Regex, Regex>> _unimportants;
 
 		public class CensoreGroup
 		{
@@ -53,12 +53,12 @@ namespace VssSvnConverter
 					if (sep == -1)
 						throw new ApplicationException("Incorrect unimportant-diff: " + v + "\nAbsent separator '?' between filename and unimportant regex");
 
-					var fileName = v.Substring(0, sep).ToLowerInvariant().Replace('\\', '/').Trim('/');
+					var fileNameRx = new Regex(v.Substring(0, sep), RegexOptions.IgnoreCase);
 					var regex = new Regex(v.Substring(sep + 1), RegexOptions.IgnoreCase);
 
-					return new { K = fileName, V = regex };
+					return Tuple.Create(fileNameRx, regex);
 				})
-				.ToLookup(kv => kv.K, kv => kv.V)
+				.ToList()
 			;
 
 			// load censores
@@ -236,7 +236,7 @@ namespace VssSvnConverter
 				}
 
 				// special mode for check unimportant differenrces
-				if (_opts.ImportUnimportantOnly && !_unimportants[relPath.ToLowerInvariant().Replace('\\', '/').Trim('/')].Any())
+				if (_opts.ImportUnimportantOnly && !_unimportants.Any(t => t.Item1.IsMatch(relPath.ToLowerInvariant().Replace('\\', '/').Trim('/'))))
 					continue;
 
 				log.WriteLine("Load: {0} -> {1}", file, relPath);
@@ -347,7 +347,7 @@ namespace VssSvnConverter
 		{
 			var relNorm = relPath.ToLowerInvariant().Replace('\\', '/').Trim('/');
 
-			var unimportantPatterns = _unimportants[relNorm].ToArray();
+			var unimportantPatterns = _unimportants.Where(t => t.Item1.IsMatch(relNorm)).ToArray();
 
 			if (unimportantPatterns.Length == 0)
 				return;
@@ -363,7 +363,7 @@ namespace VssSvnConverter
 			;
 
 			// check if all differences matched to any pattern
-			if (diffLines.All(diffLine => unimportantPatterns.Any(rx => rx.IsMatch(diffLine))))
+			if (diffLines.All(diffLine => unimportantPatterns.Any(t => t.Item2.IsMatch(diffLine))))
 			{
 				// file contains only unimportant changes and will not be included in commit
 				prepareFileForModifications(false);
