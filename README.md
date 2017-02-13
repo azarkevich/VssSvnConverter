@@ -48,9 +48,10 @@ And then use standard SVN tools for move imported stuff from /import to any corr
 
 Git support
 -----------
-Despite its name (VssSvnConverter), this utility also support conversion to Git (2 variants) and TFS
+Despite its name (VssSvnConverter), this utility also support conversion to Git and TFS
+
 Git supported in 2 variants:
-1. generate fast-import datapack, which can be then imported with command 
+ * generate fast-import datapack, which can be then imported with command 
 ```
 git fast-import < datapack
 ```
@@ -62,9 +63,9 @@ it generate datapack with name 6-git-fast-import.dat
 
 fast-import mopde does not support features: unimportant-diff, censore.
 
-Also author names should be in format 'name <email>'
+Also author names should be in format `name <email>`
 
-2. 'git' driver, which can be selected in config.
+ * 'git' driver, which can be selected in config.
 
 Use command line for perform commits one-by-one. Slower, but support features: unimportant-diff, censore.
 
