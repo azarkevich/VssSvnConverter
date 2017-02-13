@@ -48,11 +48,26 @@ And then use standard SVN tools for move imported stuff from /import to any corr
 
 Git support
 -----------
-It appears that we was forced to use TFS. But still bunch of sources are in VSS, so I update this utility for support both Subversion and Git.
-Through Git it become possible to push changes (with help of git-tfs) to TFS
+Despite its name (VssSvnConverter), this utility also support conversion to Git (2 variants) and TFS
+Git supported in 2 variants:
+1. generate fast-import datapack, which can be then imported with command 
+```
+git fast-import < datapack
+```
+For generate fast-import file use command line as last step (instead of import)
+```
+VssSvnConverter.exe git-fast-import
+```
+it generate datapack with name 6-git-fast-import.dat
+
+fast-import mopde does not support features: unimportant-diff, censore.
+
+Also author names should be in format 'name <email>'
+
+2. 'git' driver, which can be selected in config.
+
+Use command line for perform commits one-by-one. Slower, but support features: unimportant-diff, censore.
 
 TFS support
 -----------
-It appears, in turn, that conversion VSS -> GIT -> TFS works very slow. If you has 1000 revisions for import and someone commit during import (or import interrupted by other reason),
-then you basically should rebase about 1000 commits and that was terribly slow.
-So, I add TFS support via calling tf.exe and it is here.
+TFS also supported as 'tfs' driver in config. It use tf.exe command for perform adding/commits.

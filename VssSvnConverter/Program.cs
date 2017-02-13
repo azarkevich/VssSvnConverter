@@ -45,7 +45,7 @@ namespace VssSvnConverter
 					return -1;
 				}
 
-				var unkVerb = verbs.FirstOrDefault(v => v != "ui" && v != "build-list" && v != "build-list-stats" && v != "build-versions" && v != "build-links" && v != "build-cache" && v != "build-commits" && v != "build-wc" && v != "import" && v != "build-scripts");
+				var unkVerb = verbs.FirstOrDefault(v => v != "ui" && v != "build-list" && v != "build-list-stats" && v != "build-versions" && v != "build-links" && v != "build-cache" && v != "build-commits" && v != "build-wc" && v != "import" && v != "git-fast-import" && v != "build-scripts");
 				if(unkVerb != null)
 				{
 					ShowHelp(unkVerb);
@@ -143,6 +143,10 @@ namespace VssSvnConverter
 					Console.WriteLine("Next: import");
 					break;
 
+				case "git-fast-import":
+					new GitFastImportFrontend().Create(_opts, new CommitsBuilder().Load());
+					break;
+
 				case "import-new":
 					new Importer().Import(_opts, new CommitsBuilder().Load(), true, progress);
 					break;
@@ -222,6 +226,7 @@ where
 		build-wc - Checkout specified URL.
 		import - import commits to SVN working copy
 		build-scripts - generate some useful scripts
+		git-fast-import - generate datafile which can be imported with command git fast-import. Use it instead of import.
 
 	each stage suppose, that previous stage results was already build and available.
 
