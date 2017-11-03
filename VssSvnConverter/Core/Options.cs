@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -36,13 +36,12 @@ namespace VssSvnConverter.Core
 		public Regex[] LatestOnlyRx;
 
 		// build commits
-		public TimeSpan SilentSpan;
-		public bool MergeChanges;
-		public bool OverlapCommits;
+		public TimeSpan SilencioSpan;
+		public bool MergeSameFileChanges;
+		public bool UserMappingStrict;
+		public string CombinedAuthor;
 		public bool CommentAddVssFilesInfo;
 		public bool CommentAddUserTime;
-		public bool UserMappingStrict;
-		public bool CommentAddCommitNumber;
 
 		public Regex[] UnimportantCheckinCommentRx;
 
@@ -125,26 +124,20 @@ namespace VssSvnConverter.Core
 			// commit setup
 
 			// silent period
-			SilentSpan = Config["commit-silent-period"]
+			SilencioSpan = Config["commit-silent-period"]
 				.DefaultIfEmpty("120")
 				.Select(Double.Parse)
 				.Select(TimeSpan.FromMinutes)
 				.First()
 			;
 
-			// overlapping
-			OverlapCommits = Config["overlapped-commits"]
-				.DefaultIfEmpty("false")
-				.Select(bool.Parse)
-				.First()
-			;
-
 			// merge changes
-			MergeChanges = Config["merge-changes"]
+			MergeSameFileChanges = Config["merge-changes"]
 				.DefaultIfEmpty("false")
 				.Select(bool.Parse)
 				.First()
 			;
+			CombinedAuthor = Config["combined-author"].FirstOrDefault();
 
 			UnimportantCheckinCommentRx = Config["unimportant-checkin-comment-rx"]
 				.Select(s => new Regex(s, RegexOptions.IgnoreCase))
@@ -164,12 +157,6 @@ namespace VssSvnConverter.Core
 			;
 
 			CommentAddUserTime = Config["comment-add-user-time"]
-				.DefaultIfEmpty("false")
-				.Select(bool.Parse)
-				.First()
-			;
-
-			CommentAddCommitNumber = Config["comment-add-commit-number"]
 				.DefaultIfEmpty("false")
 				.Select(bool.Parse)
 				.First()

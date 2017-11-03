@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
@@ -15,7 +15,7 @@ namespace VssSvnConverter
 	{
 		public string FileSpec;
 		public string User;
-		public string User4Comment;
+		public string OriginalUser;
 		public DateTime At;
 		public int VssVersion;
 		public string Comment;

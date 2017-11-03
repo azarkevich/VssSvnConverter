@@ -1,4 +1,4 @@
-﻿namespace VssSvnConverter
+namespace VssSvnConverter
 {
 	partial class SimpleUI
 	{
@@ -48,6 +48,8 @@
 			this.timerHungDetector = new System.Windows.Forms.Timer(this.components);
 			this.fileSystemConfigWatcher = new System.IO.FileSystemWatcher();
 			this.labelActiveDriver = new System.Windows.Forms.Label();
+			this.label2 = new System.Windows.Forms.Label();
+			this.button1 = new System.Windows.Forms.Button();
 			((System.ComponentModel.ISupportInitialize)(this.fileSystemConfigWatcher)).BeginInit();
 			this.SuspendLayout();
 			// 
@@ -124,7 +126,7 @@
 			this.buttonCleanupWC.Location = new System.Drawing.Point(12, 174);
 			this.buttonCleanupWC.Name = "buttonCleanupWC";
 			this.buttonCleanupWC.Size = new System.Drawing.Size(226, 23);
-			this.buttonCleanupWC.TabIndex = 8;
+			this.buttonCleanupWC.TabIndex = 9;
 			this.buttonCleanupWC.Tag = "build-wc";
 			this.buttonCleanupWC.Text = "6. Build/cleanup wc";
 			this.buttonCleanupWC.UseVisualStyleBackColor = true;
@@ -137,7 +139,7 @@
 			this.buttonImport.Location = new System.Drawing.Point(12, 203);
 			this.buttonImport.Name = "buttonImport";
 			this.buttonImport.Size = new System.Drawing.Size(75, 23);
-			this.buttonImport.TabIndex = 9;
+			this.buttonImport.TabIndex = 10;
 			this.buttonImport.Tag = "import-new";
 			this.buttonImport.Text = "7. Import";
 			this.buttonImport.UseVisualStyleBackColor = true;
@@ -150,7 +152,7 @@
 			this.button7.Location = new System.Drawing.Point(12, 232);
 			this.button7.Name = "button7";
 			this.button7.Size = new System.Drawing.Size(226, 23);
-			this.button7.TabIndex = 12;
+			this.button7.TabIndex = 13;
 			this.button7.Tag = "build-scripts";
 			this.button7.Text = "8. Build scripts";
 			this.button7.UseVisualStyleBackColor = true;
@@ -201,7 +203,7 @@
 			this.buttonStopImport.Location = new System.Drawing.Point(209, 203);
 			this.buttonStopImport.Name = "buttonStopImport";
 			this.buttonStopImport.Size = new System.Drawing.Size(29, 23);
-			this.buttonStopImport.TabIndex = 11;
+			this.buttonStopImport.TabIndex = 12;
 			this.buttonStopImport.Tag = "import-stop";
 			this.buttonStopImport.Text = "S";
 			this.toolTip1.SetToolTip(this.buttonStopImport, "Stop import after next commit");
@@ -215,7 +217,7 @@
 			this.buttonImportContinue.Location = new System.Drawing.Point(93, 203);
 			this.buttonImportContinue.Name = "buttonImportContinue";
 			this.buttonImportContinue.Size = new System.Drawing.Size(110, 23);
-			this.buttonImportContinue.TabIndex = 10;
+			this.buttonImportContinue.TabIndex = 11;
 			this.buttonImportContinue.Tag = "import";
 			this.buttonImportContinue.Text = "7. Import (continue)";
 			this.buttonImportContinue.UseVisualStyleBackColor = true;
@@ -223,10 +225,10 @@
 			// 
 			// buttonTryCensors
 			// 
-			this.buttonTryCensors.Location = new System.Drawing.Point(12, 282);
+			this.buttonTryCensors.Location = new System.Drawing.Point(12, 329);
 			this.buttonTryCensors.Name = "buttonTryCensors";
 			this.buttonTryCensors.Size = new System.Drawing.Size(226, 23);
-			this.buttonTryCensors.TabIndex = 14;
+			this.buttonTryCensors.TabIndex = 17;
 			this.buttonTryCensors.Tag = "try-censors";
 			this.buttonTryCensors.Text = "Try Censore";
 			this.buttonTryCensors.UseVisualStyleBackColor = true;
@@ -235,10 +237,10 @@
 			// label1
 			// 
 			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(12, 266);
+			this.label1.Location = new System.Drawing.Point(12, 313);
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(31, 13);
-			this.label1.TabIndex = 13;
+			this.label1.TabIndex = 16;
 			this.label1.Text = "Test:";
 			// 
 			// timerHungDetector
@@ -259,14 +261,36 @@
 			this.labelActiveDriver.Location = new System.Drawing.Point(12, 158);
 			this.labelActiveDriver.Name = "labelActiveDriver";
 			this.labelActiveDriver.Size = new System.Drawing.Size(69, 13);
-			this.labelActiveDriver.TabIndex = 15;
+			this.labelActiveDriver.TabIndex = 8;
 			this.labelActiveDriver.Text = "Active driver:";
+			// 
+			// label2
+			// 
+			this.label2.AutoSize = true;
+			this.label2.Location = new System.Drawing.Point(12, 264);
+			this.label2.Name = "label2";
+			this.label2.Size = new System.Drawing.Size(23, 13);
+			this.label2.TabIndex = 14;
+			this.label2.Text = "Git:";
+			// 
+			// button1
+			// 
+			this.button1.Location = new System.Drawing.Point(12, 280);
+			this.button1.Name = "button1";
+			this.button1.Size = new System.Drawing.Size(226, 23);
+			this.button1.TabIndex = 15;
+			this.button1.Tag = "git-fast-import";
+			this.button1.Text = "Generate Fast Import file";
+			this.button1.UseVisualStyleBackColor = true;
+			this.button1.Click += new System.EventHandler(this.buildList_Click);
 			// 
 			// SimpleUI
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(250, 316);
+			this.ClientSize = new System.Drawing.Size(250, 360);
+			this.Controls.Add(this.label2);
+			this.Controls.Add(this.button1);
 			this.Controls.Add(this.labelActiveDriver);
 			this.Controls.Add(this.buttonStopImport);
 			this.Controls.Add(this.label1);
@@ -317,5 +341,7 @@
 		private System.Windows.Forms.Timer timerHungDetector;
 		private System.IO.FileSystemWatcher fileSystemConfigWatcher;
 		private System.Windows.Forms.Label labelActiveDriver;
+		private System.Windows.Forms.Label label2;
+		private System.Windows.Forms.Button button1;
 	}
 }

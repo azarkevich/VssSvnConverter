@@ -7,3 +7,4 @@ packages/
 *.psess
 *.vsp
 *.TMP
+/.vs/

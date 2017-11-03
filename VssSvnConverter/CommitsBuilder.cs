@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -7,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using VssSvnConverter.Core;
 using System.Diagnostics;
+using SourceSafeTypeLib;
 
 namespace VssSvnConverter
 {
@@ -15,6 +17,7 @@ namespace VssSvnConverter
 		const string DataFileName = "5-commits-list.txt";
 
 		Options _opts;
+		HashSet<string> _notMappedAuthors = new HashSet<string>();
 
 		public List<Commit> Load()
 		{
@@ -61,7 +64,9 @@ namespace VssSvnConverter
 		{
 			_opts = opts;
 
-			if(File.Exists(DataFileName))
+			_notMappedAuthors.Clear();
+
+			if (File.Exists(DataFileName))
 				File.Delete(DataFileName);
 
 			if (opts.UnimportantCheckinCommentRx.Length > 0)
@@ -93,18 +98,16 @@ namespace VssSvnConverter
 				}
 			}
 
+			// perform mapping vss user -> author
+			MapAuthors(versions);
+
 			var orderedRevisions = versions
 				.OrderBy(r => r.At)
 				.ThenBy(r => r.VssVersion)
+				.ToList()
 			;
 
-			// perform mapping vss user -> author
-			MapUsersInComment(orderedRevisions);
-
-			var commits = SliceToCommits(orderedRevisions);
-
-			// perfrom author -> commiter mapping
-			MapUsers(commits);
+			var commits = SliceToCommits(orderedRevisions).ToList();
 
 			// save
 			using(var wr = File.CreateText(DataFileName))
@@ -121,75 +124,34 @@ namespace VssSvnConverter
 
 			Console.WriteLine("{0} commits produced.", commits.Count);
 			Console.WriteLine("Build commits list complete. Check " + DataFileName);
-		}
 
-		void MapUsers(IEnumerable<Commit> commits)
-		{
-			var mapping = LoadUserMappings("authors");
-
-			if (mapping == null)
-				return;
-
-			var notMapped = new HashSet<string>();
-			var notMappedL = new List<string>();
-			foreach (var c in commits)
+			if(_notMappedAuthors.Count > 0)
 			{
-				string commiter;
-				if (!mapping.TryGetValue(c.User.ToLowerInvariant(), out commiter) &&
-					!mapping.TryGetValue("*", out commiter))
+				Console.WriteLine("Not mapped users:");
+				_notMappedAuthors.ToList().ForEach(u => Console.WriteLine($"{u} = ?"));
+
+				if(_opts.UserMappingStrict)
 				{
-					if (_opts.UserMappingStrict && !notMapped.Contains(c.User.ToLowerInvariant()))
-					{
-						notMapped.Add(c.User.ToLowerInvariant());
-						notMappedL.Add(c.User);
-					}
+					throw new ApplicationException("Stop execution.");
 				}
-				else if (commiter != "*")
-					c.User = commiter;
-			}
-
-			if (_opts.UserMappingStrict && notMapped.Count > 0)
-			{
-				Console.WriteLine("Insufficiend mapping for author -> commiter:");
-				foreach (var user in notMappedL)
-					Console.WriteLine("{0} = ?", user);
-				throw new ApplicationException("Stop execution.");
 			}
 		}
 
-		void MapUsersInComment(IEnumerable<FileRevision> orderedRevisions)
+		void MapAuthors(IEnumerable<FileRevision> revs)
 		{
-			var mapping = LoadUserMappings("authors-for-comment");
+			var mapping = LoadUserMappings("authors") ?? new Dictionary<string, string>();
 
-			if (mapping == null)
-				return;
-
-			var notMapped = new HashSet<string>();
-			var notMappedL = new List<string>();
-			foreach (var rev in orderedRevisions)
+			foreach (var rev in revs)
 			{
-				string author;
-				if (!mapping.TryGetValue(rev.User.ToLowerInvariant(), out author) &&
-					!mapping.TryGetValue("*", out author))
+				if (mapping.TryGetValue(rev.User.ToLowerInvariant(), out string author))
 				{
-					if (_opts.UserMappingStrict && !notMapped.Contains(rev.User.ToLowerInvariant()))
-					{
-						notMapped.Add(rev.User.ToLowerInvariant());
-						notMappedL.Add(rev.User);
-					}
+					rev.OriginalUser = rev.User;
+					rev.User = author;
 				}
-				else if (author != "*" && String.Compare(author, rev.User, StringComparison.OrdinalIgnoreCase) != 0)
+				else
 				{
-					rev.User4Comment = author;
+					_notMappedAuthors.Add(rev.User.ToLowerInvariant());
 				}
-			}
-
-			if (_opts.UserMappingStrict && notMapped.Count > 0)
-			{
-				Console.WriteLine("Insufficiend mapping for vss author -> author:");
-				foreach (var user in notMappedL)
-					Console.WriteLine("{0} = ?", user);
-				throw new ApplicationException("Stop execution.");
 			}
 		}
 
@@ -219,95 +181,127 @@ namespace VssSvnConverter
 			return mapping;
 		}
 
-		List<Commit> SliceToCommits(IEnumerable<FileRevision> revs)
+		IEnumerable<Commit> SliceToCommits(List<FileRevision> revs)
 		{
-			var currentUserCommits = new Dictionary<string, Commit>();
+			var oldUsers = new HashSet<string>();
 
-			var returnCommits = new List<Commit>();
-			var commitComments = new Dictionary<Commit, List<string>>();
-
-			foreach (var rev in revs)
+			foreach (var file in _opts.Config["old-authors"])
 			{
-				// commits flushing
-				var forRemove = new List<string>();
-				foreach (var kvp in currentUserCommits)
-				{
-					var commit = kvp.Value;
+				File.ReadAllLines(file)
+					.Where(l => !string.IsNullOrWhiteSpace(l))
+					.ToList()
+					.ForEach(l => oldUsers.Add(l.ToLowerInvariant()))
+				;
+			}
 
-					// out of silence period ?
-					if((rev.At - commit.LastChangeAt) > _opts.SilentSpan)
+			var current = new List<FileRevision>();
+
+			for (var i = 0; ; i++)
+			{
+				current.Clear();
+				for (; i < revs.Count; i++)
+				{
+					var rev = revs[i];
+
+					// first revison always can be added
+					if (current.Count == 0)
 					{
-						forRemove.Add(kvp.Key);
+						current.Add(rev);
 						continue;
 					}
 
-					// file already in one of commit
-					if(commit.ContainsFile(rev.FileSpec))
+					// chnages too far in time
+					if (rev.At - current.Last().At > _opts.SilencioSpan)
 					{
-						// flush commit if merge changes disallowd or if file participate in other user commit
-						if(!_opts.MergeChanges || commit.User != rev.User)
+						i--;
+						break;
+					}
+
+					// if author changed and one of authors not 'old' - stop current commit
+					if(current.Last().User != rev.User)
+					{
+						if(!oldUsers.Contains(rev.User) || !oldUsers.Contains(current.Last().User))
 						{
-							forRemove.Add(kvp.Key);
-							continue;
+							i--;
+							break;
 						}
 					}
 
-					// if overlapping not allowed - flush all users, except current revision user
-					if(!_opts.OverlapCommits && commit.User != rev.User)
+					// if merge not allowed - check file already in one of commit
+					if (!_opts.MergeSameFileChanges)
 					{
-						forRemove.Add(kvp.Key);
-						continue;
+						if (current.Any(r => StringComparer.OrdinalIgnoreCase.Compare(r.FileSpec, rev.FileSpec) == 0))
+						{
+							i--;
+							break;
+						}
 					}
-				}
-				forRemove.ForEach(k => currentUserCommits.Remove(k));
 
-				// get/create current commit
-				Commit cmt;
-				if(!currentUserCommits.TryGetValue(rev.User, out cmt))
+					current.Add(rev);
+				}
+
+				if (current.Count == 0)
 				{
-					cmt = new Commit {
-						At = rev.At,
-						User = rev.User,
-						User4Comment = rev.User4Comment
-					};
-					currentUserCommits.Add(rev.User, cmt);
-
-					returnCommits.Add(cmt);
+					Trace.Assert(i >= revs.Count);
+					break;
 				}
 
-				// add file revision
-				cmt.AddRevision(new FileRevisionLite { FileSpec = rev.FileSpec, VssVersion = rev.VssVersion, At = rev.At });
+				// build commit
+				var c = new Commit { At = current.First().At };
 
-				if(!string.IsNullOrWhiteSpace(rev.Comment))
+				// add revisions
+				current.ForEach(r => c.AddRevision(new FileRevisionLite { At = r.At, FileSpec = r.FileSpec, VssVersion = r.VssVersion }));
+
+				// calculate author
+				var allAuthors = current.Select(r => r.User).Distinct().ToList();
+				if(allAuthors.Count == 1)
 				{
-					List<string> comments;
-					if (!commitComments.TryGetValue(cmt, out comments))
-					{
-						commitComments[cmt] = comments = new List<string>();
-					}
+					c.User = allAuthors[0];
 
-					if(!string.IsNullOrWhiteSpace(rev.Comment))
-					{
-						var comment = rev.Comment.Trim();
-						if (!comments.Contains(comment))
-							comments.Add(comment);
-					}
+					BuildCommitComment(
+						c,
+						current.Select(r => r.Comment).Where(cc => !string.IsNullOrWhiteSpace(cc)).Distinct()
+					);
 				}
-			}
+				else
+				{
+					if (_opts.CombinedAuthor == null)
+						throw new Exception("'combined-author' config paramter not specified.");
 
-			// build commit comments
-			for (int i = 0; i < returnCommits.Count; i++)
-			{
-				var cmt = returnCommits[i];
-				List<string> comments;
-				commitComments.TryGetValue(cmt, out comments);
-				BuildCommitComment(i, cmt, comments);
-			}
+					c.User = _opts.CombinedAuthor;
 
-			return returnCommits;
+					BuildCombinedCommitComment(
+						c,
+						current
+					);
+				}
+
+				yield return c;
+			}
 		}
 
-		void BuildCommitComment(int commitIndex, Commit cmt, IEnumerable<string> comments)
+		void BuildCombinedCommitComment(Commit cmt, IEnumerable<FileRevision> revs)
+		{
+			var sb = new StringBuilder();
+
+			foreach (var g in revs.GroupBy(r => r.OriginalUser))
+			{
+				if (sb.Length > 0)
+					sb.AppendLine("===");
+
+				sb.AppendLine($"@{g.Key}:");
+				foreach (var rev in g)
+				{
+					sb.AppendLine($"{rev.At}  {rev.FileSpec}@{rev.VssVersion}");
+					if (!string.IsNullOrWhiteSpace(rev.Comment))
+						sb.AppendLine($"\t{rev.Comment}");
+				}
+			}
+
+			cmt.Comment = sb.ToString();
+		}
+
+		void BuildCommitComment(Commit cmt, IEnumerable<string> comments)
 		{
 			var sb = new StringBuilder();
 
@@ -332,7 +326,7 @@ namespace VssSvnConverter
 
 			if(_opts.CommentAddUserTime)
 			{
-				var commitInfo = string.Format("{{{1} by {0}}}", cmt.User4Comment ?? cmt.User, cmt.At.ToString("yyyy-MMM-dd HH:ss:mm", CultureInfo.InvariantCulture));
+				var commitInfo = string.Format("{{{1} by {0}}}", cmt.User, cmt.At.ToString("yyyy-MMM-dd HH:ss:mm", CultureInfo.InvariantCulture));
 
 				if (sb.Length > 0)
 				{
@@ -345,11 +339,6 @@ namespace VssSvnConverter
 				}
 
 				sb.Insert(0, commitInfo);
-			}
-
-			if(_opts.CommentAddCommitNumber)
-			{
-				sb.Insert(0, string.Format("Commit#{0}\n", commitIndex + 1));
 			}
 
 			cmt.Comment = sb.ToString().Trim();

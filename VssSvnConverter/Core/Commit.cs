@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace VssSvnConverter.Core
@@ -6,9 +6,8 @@ namespace VssSvnConverter.Core
 	class Commit
 	{
 		public DateTime At;
-		public DateTime LastChangeAt;
+		//public DateTime LastChangeAt;
 		public string User;
-		public string User4Comment;
 
 		// File revisions
 		public void AddRevision(FileRevisionLite rev)
@@ -19,7 +18,7 @@ namespace VssSvnConverter.Core
 				// add or update
 				_filesMap[rev.FileSpec] = rev;
 
-				LastChangeAt = rev.At;
+				//LastChangeAt = rev.At;
 			}
 		}
 

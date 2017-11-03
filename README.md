@@ -5,7 +5,7 @@ Yet another converter of Visual Source Safe database to Subversion / Git / TFS r
 
 Why?
 
-This converter was written and tested during gradual conversion of 18GB VSS repository to Subversion and later to TFS.
+This converter was written and tested during gradual conversion of 18GB VSS repository to Subversion then to TFS and finally to Git.
 No one other tool(which I try), such as Vss2Svn, VssMigrate was unable doing this work. It is too big, to complex and corrupted.
 
 So, this converter has advantages and disadvantages.
