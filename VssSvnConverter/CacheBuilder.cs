@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -310,7 +310,7 @@ namespace VssSvnConverter
 								file.Comment += commentPlus;
 							}
 
-							sw.WriteLine("Ver:{0}	Spec:{1}	Phys:{2}	User:{3}	At:{4}	DT:{5}	Comment:{6}",
+							sw.WriteLine("Ver:{0}	Spec:{1}	Phys:{2}	Author:{3}	At:{4}	DT:{5}	Comment:{6}",
 								file.VssVersion,
 								file.FileSpec,
 								file.Physical,

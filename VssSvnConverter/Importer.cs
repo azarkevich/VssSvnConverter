@@ -77,7 +77,7 @@ namespace VssSvnConverter
 					;
 				}
 
-				if (MessageBox.Show(string.Format("Cleanu work tree and start import from commit #{0} by {1}", fromCommit, commits[fromCommit].User), "Confirmation", MessageBoxButtons.OKCancel) != DialogResult.OK)
+				if (MessageBox.Show(string.Format("Cleanu work tree and start import from commit #{0} by {1}", fromCommit, commits[fromCommit].Author), "Confirmation", MessageBoxButtons.OKCancel) != DialogResult.OK)
 					return;
 
 				if (opts.ImportDriver == "tfs")
@@ -111,7 +111,7 @@ namespace VssSvnConverter
 					{
 						var c = commits[i];
 
-						Console.WriteLine("[{2,6}/{3}] Import: {0:yyyy-MMM-dd HH:ss:mm}, by {1}", c.At, c.User, i, commits.Count);
+						Console.WriteLine("[{2,6}/{3}] Import: {0:yyyy-MMM-dd HH:ss:mm}, by {1}", c.At, c.Author, i, commits.Count);
 						if (progress != null)
 							progress((float)i / commits.Count);
 
@@ -125,7 +125,7 @@ namespace VssSvnConverter
 
 						DogWatch = DateTimeOffset.Now;
 
-						driver.CommitRevision(commits[i].User, c.Comment, commits[i].At);
+						driver.CommitRevision(commits[i].Author, c.Comment, commits[i].At);
 
 						DogWatch = DateTimeOffset.Now;
 

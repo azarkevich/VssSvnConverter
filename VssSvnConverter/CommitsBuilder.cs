@@ -1,5 +1,4 @@
 using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -8,22 +7,23 @@ using System.Text;
 using System.Text.RegularExpressions;
 using VssSvnConverter.Core;
 using System.Diagnostics;
-using SourceSafeTypeLib;
 
 namespace VssSvnConverter
 {
 	class CommitsBuilder
 	{
 		const string DataFileName = "5-commits-list.txt";
+		const string CommitLogFileName = "5-commits-log.txt";
 
 		Options _opts;
-		HashSet<string> _notMappedAuthors = new HashSet<string>();
 
-		public List<Commit> Load()
+		readonly HashSet<string> _notMappedAuthors = new HashSet<string>();
+
+		public static List<Commit> Load()
 		{
 			Commit commit = null;
 			var commits = new List<Commit>();
-			var commitRx = new Regex(@"^Commit:(?<at>[0-9]+)\t\tUser:(?<user>.+)\t\tComment:(?<comment>.*)$");
+			var commitRx = new Regex(@"^Commit:(?<at>[0-9]+)\t\tAuthor:(?<user>.+)\t\tComment:(?<comment>.*)$");
 			using(var r = File.OpenText(DataFileName))
 			{
 				string line;
@@ -45,15 +45,16 @@ namespace VssSvnConverter
 					else
 					{
 						var m = commitRx.Match(line);
-						if(m.Success)
-						{
-							commit = new Commit {
-								At = new DateTime(long.Parse(m.Groups["at"].Value), DateTimeKind.Utc),
-								User = m.Groups["user"].Value,
-								Comment = DeserializeMultilineText(m.Groups["comment"].Value)
-							};
-							commits.Add(commit);
-						}
+						if (!m.Success)
+							throw new Exception("Can not parse line: " + line);
+
+						commit = new Commit {
+							At = new DateTime(long.Parse(m.Groups["at"].Value), DateTimeKind.Utc),
+							Author = m.Groups["user"].Value,
+							Comment = DeserializeMultilineText(m.Groups["comment"].Value)
+						};
+
+						commits.Add(commit);
 					}
 				}
 			}
@@ -114,7 +115,7 @@ namespace VssSvnConverter
 			{
 				foreach (var c in commits)
 				{
-					wr.WriteLine("Commit:{0}		User:{1}		Comment:{2}", c.At.Ticks, c.User, SerializeMultilineText(c.Comment));
+					wr.WriteLine("Commit:{0}		Author:{1}		Comment:{2}", c.At.Ticks, c.Author, SerializeMultilineText(c.Comment));
 					c.Files.ToList().ForEach(f => {
 						Debug.Assert(f.At.Kind == DateTimeKind.Utc);
 						wr.WriteLine("	{0}:{1}:{2}", f.VssVersion, f.At.Ticks, f.FileSpec);
@@ -122,8 +123,19 @@ namespace VssSvnConverter
 				}
 			}
 
+			// save commits info (log like)
+			using (var wr = File.CreateText(CommitLogFileName))
+			{
+				foreach (var c in commits)
+				{
+					wr.WriteLine($"{c.At:yyyy-MM-dd HH:mm:ss} {c.Author}");
+					var comment = string.Join("\n", c.Comment.Split('\n').Select(x => "\t" + x)).Trim();
+					if(!string.IsNullOrWhiteSpace(comment))
+						wr.WriteLine("\t" + comment);
+				}
+			}
+
 			Console.WriteLine("{0} commits produced.", commits.Count);
-			Console.WriteLine("Build commits list complete. Check " + DataFileName);
 
 			if(_notMappedAuthors.Count > 0)
 			{
@@ -135,6 +147,7 @@ namespace VssSvnConverter
 					throw new ApplicationException("Stop execution.");
 				}
 			}
+			Console.WriteLine("Build commits list complete. Check " + DataFileName);
 		}
 
 		void MapAuthors(IEnumerable<FileRevision> revs)
@@ -172,95 +185,105 @@ namespace VssSvnConverter
 					var from = line.Substring(0, ind).Trim().ToLowerInvariant();
 					var to = line.Substring(ind + 1).Trim();
 
-					if (mapping.ContainsKey(@from))
-						throw new Exception("Invalid user mapping file: " + mappingFile + "; Duplicate entry: " + @from);
+					if (mapping.ContainsKey(from))
+						throw new Exception("Invalid user mapping file: " + mappingFile + "; Duplicate entry: " + from);
 
-					mapping[@from] = to;
+					mapping[from] = to;
 				}
 			}
 			return mapping;
 		}
 
-		IEnumerable<Commit> SliceToCommits(List<FileRevision> revs)
+		HashSet<string> LoadOldAuthors()
 		{
-			var oldUsers = new HashSet<string>();
+			var oldAuthors = new HashSet<string>();
 
 			foreach (var file in _opts.Config["old-authors"])
 			{
 				File.ReadAllLines(file)
 					.Where(l => !string.IsNullOrWhiteSpace(l))
 					.ToList()
-					.ForEach(l => oldUsers.Add(l.ToLowerInvariant()))
+					.ForEach(l => oldAuthors.Add(l.ToLowerInvariant()))
 				;
 			}
 
-			var current = new List<FileRevision>();
+			return oldAuthors;
+		}
+
+		IEnumerable<Commit> SliceToCommits(List<FileRevision> revs)
+		{
+			var oldUsers = LoadOldAuthors();
+
+			var currentCommitRevisions = new List<FileRevision>();
 
 			for (var i = 0; ; i++)
 			{
-				current.Clear();
+				// start new commit
+				currentCommitRevisions.Clear();
+
 				for (; i < revs.Count; i++)
 				{
 					var rev = revs[i];
 
 					// first revison always can be added
-					if (current.Count == 0)
+					if (currentCommitRevisions.Count == 0)
 					{
-						current.Add(rev);
+						currentCommitRevisions.Add(rev);
 						continue;
 					}
 
-					// chnages too far in time
-					if (rev.At - current.Last().At > _opts.SilencioSpan)
+					// changes too far in time
+					if (rev.At - currentCommitRevisions.Last().At > _opts.SilencioSpan)
 					{
 						i--;
 						break;
 					}
 
-					// if author changed and one of authors not 'old' - stop current commit
-					if(current.Last().User != rev.User)
+					// if 'old-authors' specified in config - combine 'old' authors into single commit
+					if (currentCommitRevisions.Last().User != rev.User)
 					{
-						if(!oldUsers.Contains(rev.User) || !oldUsers.Contains(current.Last().User))
+						// if author changed and one of authors not 'old' - stop current commit
+						if (!oldUsers.Contains(rev.User) || !oldUsers.Contains(currentCommitRevisions.Last().User))
 						{
 							i--;
 							break;
 						}
 					}
 
-					// if merge not allowed - check file already in one of commit
+					// if merge not allowed - check file already in one of already added revisions
 					if (!_opts.MergeSameFileChanges)
 					{
-						if (current.Any(r => StringComparer.OrdinalIgnoreCase.Compare(r.FileSpec, rev.FileSpec) == 0))
+						if (currentCommitRevisions.Any(r => StringComparer.OrdinalIgnoreCase.Compare(r.FileSpec, rev.FileSpec) == 0))
 						{
 							i--;
 							break;
 						}
 					}
 
-					current.Add(rev);
+					currentCommitRevisions.Add(rev);
 				}
 
-				if (current.Count == 0)
+				if (currentCommitRevisions.Count == 0)
 				{
 					Trace.Assert(i >= revs.Count);
 					break;
 				}
 
 				// build commit
-				var c = new Commit { At = current.First().At };
+				var c = new Commit { At = currentCommitRevisions.First().At };
 
 				// add revisions
-				current.ForEach(r => c.AddRevision(new FileRevisionLite { At = r.At, FileSpec = r.FileSpec, VssVersion = r.VssVersion }));
+				currentCommitRevisions.ForEach(r => c.AddRevision(new FileRevisionLite { At = r.At, FileSpec = r.FileSpec, VssVersion = r.VssVersion }));
 
 				// calculate author
-				var allAuthors = current.Select(r => r.User).Distinct().ToList();
-				if(allAuthors.Count == 1)
+				var commitAuthors = currentCommitRevisions.Select(r => r.User).Distinct().ToList();
+				if(commitAuthors.Count == 1)
 				{
-					c.User = allAuthors[0];
+					c.Author = commitAuthors[0];
 
 					BuildCommitComment(
 						c,
-						current.Select(r => r.Comment).Where(cc => !string.IsNullOrWhiteSpace(cc)).Distinct()
+						currentCommitRevisions.Select(r => r.Comment).Where(cc => !string.IsNullOrWhiteSpace(cc)).Distinct()
 					);
 				}
 				else
@@ -268,11 +291,11 @@ namespace VssSvnConverter
 					if (_opts.CombinedAuthor == null)
 						throw new Exception("'combined-author' config paramter not specified.");
 
-					c.User = _opts.CombinedAuthor;
+					c.Author = _opts.CombinedAuthor;
 
 					BuildCombinedCommitComment(
 						c,
-						current
+						currentCommitRevisions
 					);
 				}
 
@@ -280,7 +303,7 @@ namespace VssSvnConverter
 			}
 		}
 
-		void BuildCombinedCommitComment(Commit cmt, IEnumerable<FileRevision> revs)
+		void BuildCombinedCommitComment(Commit commit, IEnumerable<FileRevision> revs)
 		{
 			var sb = new StringBuilder();
 
@@ -298,10 +321,10 @@ namespace VssSvnConverter
 				}
 			}
 
-			cmt.Comment = sb.ToString();
+			commit.Comment = sb.ToString();
 		}
 
-		void BuildCommitComment(Commit cmt, IEnumerable<string> comments)
+		void BuildCommitComment(Commit commit, IEnumerable<string> comments)
 		{
 			var sb = new StringBuilder();
 
@@ -315,18 +338,18 @@ namespace VssSvnConverter
 				}
 			}
 
-			if (_opts.CommentAddVssFilesInfo && cmt.Files.Count() > 1)
+			if (_opts.CommentAddVssFilesInfo && commit.Files.Count() > 1)
 			{
 				if (sb.Length > 0)
 					sb.AppendLine("===");
 				sb.AppendFormat("@Files:");
-				foreach (var file in cmt.Files)
-					sb.AppendFormat("\n\t{0}  {1}@{2}", file.At, file.FileSpec, file.VssVersion);
+				foreach (var file in commit.Files)
+					sb.AppendFormat("\n\t{0:yyyy-MM-dd HH:mm:ss}  {1}@{2}", file.At, file.FileSpec, file.VssVersion);
 			}
 
 			if(_opts.CommentAddUserTime)
 			{
-				var commitInfo = string.Format("{{{1} by {0}}}", cmt.User, cmt.At.ToString("yyyy-MMM-dd HH:ss:mm", CultureInfo.InvariantCulture));
+				var commitInfo = string.Format("{{{1} by {0}}}", commit.Author, commit.At.ToString("yyyy-MMM-dd HH:ss:mm", CultureInfo.InvariantCulture));
 
 				if (sb.Length > 0)
 				{
@@ -341,7 +364,7 @@ namespace VssSvnConverter
 				sb.Insert(0, commitInfo);
 			}
 
-			cmt.Comment = sb.ToString().Trim();
+			commit.Comment = sb.ToString().Trim();
 		}
 
 		static string SerializeMultilineText(string text)

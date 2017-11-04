@@ -5,11 +5,14 @@ namespace VssSvnConverter.Core
 {
 	class Commit
 	{
-		public DateTime At;
-		//public DateTime LastChangeAt;
-		public string User;
+		readonly Dictionary<string, FileRevisionLite> _filesMap = new Dictionary<string, FileRevisionLite>();
 
-		// File revisions
+		public DateTime At;
+		public string Author;
+		public string Comment;
+
+		public IEnumerable<FileRevisionLite> Files => _filesMap.Values;
+
 		public void AddRevision(FileRevisionLite rev)
 		{
 			FileRevisionLite existing;
@@ -17,26 +20,7 @@ namespace VssSvnConverter.Core
 			{
 				// add or update
 				_filesMap[rev.FileSpec] = rev;
-
-				//LastChangeAt = rev.At;
 			}
 		}
-
-		public bool ContainsFile(string fileSpec)
-		{
-			return _filesMap.ContainsKey(fileSpec);
-		}
-
-		public IEnumerable<FileRevisionLite> Files
-		{
-			get
-			{
-				return _filesMap.Values;
-			}
-		}
-
-		readonly Dictionary<string, FileRevisionLite> _filesMap = new Dictionary<string, FileRevisionLite>();
-
-		public string Comment;
 	}
 }

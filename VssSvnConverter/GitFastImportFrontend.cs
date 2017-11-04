@@ -36,20 +36,20 @@ namespace VssSvnConverter
 			var badUsers = new HashSet<string>();
 			for (var i = 0; i < commits.Count; i++)
 			{
-				if(commits[i].User.Contains("  "))
-					throw new Exception("User name should not has 2 spaces in row");
+				if(commits[i].Author.Contains("  "))
+					throw new Exception("Author name should not has 2 spaces in row");
 
 				try
 				{
-					var ma = new MailAddress(commits[i].User);
+					var ma = new MailAddress(commits[i].Author);
 					if (string.IsNullOrWhiteSpace(ma.DisplayName))
-						badUsers.Add(commits[i].User);
+						badUsers.Add(commits[i].Author);
 					if (string.IsNullOrWhiteSpace(ma.Address))
-						badUsers.Add(commits[i].User);
+						badUsers.Add(commits[i].Author);
 				}
 				catch
 				{
-					badUsers.Add(commits[i].User);
+					badUsers.Add(commits[i].Author);
 				}
 			}
 
@@ -89,8 +89,8 @@ namespace VssSvnConverter
 		void WriteCommit(Commit commit)
 		{
 			WriteString($"commit {_branchName}\n");
-			WriteString($"author {commit.User} {Utils.GetUnixTimestamp(commit.At)} +0300\n");
-			WriteString($"committer {commit.User} {Utils.GetUnixTimestamp(commit.At)} +0300\n");
+			WriteString($"author {commit.Author} {Utils.GetUnixTimestamp(commit.At)} +0300\n");
+			WriteString($"committer {commit.Author} {Utils.GetUnixTimestamp(commit.At)} +0300\n");
 			WriteStringData(commit.Comment);
 			foreach (var file in commit.Files)
 			{

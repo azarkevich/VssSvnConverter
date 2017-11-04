@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.IO;
 using System.Reflection;
@@ -144,15 +144,15 @@ namespace VssSvnConverter
 					break;
 
 				case "git-fast-import":
-					new GitFastImportFrontend().Create(_opts, new CommitsBuilder().Load());
+					new GitFastImportFrontend().Create(_opts, CommitsBuilder.Load());
 					break;
 
 				case "import-new":
-					new Importer().Import(_opts, new CommitsBuilder().Load(), true, progress);
+					new Importer().Import(_opts, CommitsBuilder.Load(), true, progress);
 					break;
 
 				case "import":
-					new Importer().Import(_opts, new CommitsBuilder().Load(), false, progress);
+					new Importer().Import(_opts, CommitsBuilder.Load(), false, progress);
 					break;
 
 				case "build-scripts":
