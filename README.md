@@ -72,3 +72,9 @@ Use command line for perform commits one-by-one. Slower, but support features: u
 TFS support
 -----------
 TFS also supported as 'tfs' driver in config. It use tf.exe command for perform adding/commits.
+
+Troubleshooting
+---------
+Martin provide some hints for solve problems encountered during conversion.
+https://github.com/azarkevich/VssSvnConverter/issues/1
+https://github.com/azarkevich/VssSvnConverter/issues/1
