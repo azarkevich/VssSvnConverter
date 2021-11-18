@@ -32,12 +32,6 @@ namespace vsslib
 			return _cache.GetFileNotes(MakeKey(spec, ver));
 		}
 
-		[Obsolete("Use ver + timestamp")]
-		public void AddFile(string spec, int ver, string path, bool copy)
-		{
-			_cache.AddFile(MakeKey(spec, ver), path, copy);
-		}
-
 		public void AddFile(string spec, int ver, long timestamp, string path, bool copy)
 		{
 			_cache.AddFile(MakeKey(spec, ver, timestamp), path, copy);
