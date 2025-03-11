@@ -420,6 +420,8 @@ namespace VssSvnConverter
 					}
 				}
 
+				var timestamp = vssItem.VSSVersion.Date.Ticks;
+                
 				// in force mode check if file already in cache and coincidence by hash
 				if(_options.Force)
 				{
@@ -435,12 +437,12 @@ namespace VssSvnConverter
 						{
 							_log.WriteLine("!!! Cache contains different content for: " + file.FileSpec);
 							_log.WriteLine("{0} != {1}", hash, ce.Sha1Hash);
-							_cache.AddFile(file.FileSpec, file.VssVersion, path, false);
+							_cache.AddFile(file.FileSpec, file.VssVersion, timestamp, path, false);
 						}
 						return;
 					}
 				}
-				_cache.AddFile(file.FileSpec, file.VssVersion, path, false);
+				_cache.AddFile(file.FileSpec, file.VssVersion, timestamp, path, false);
 			}
 			catch (Exception ex)
 			{
