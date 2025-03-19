@@ -158,7 +158,7 @@ namespace VssSvnConverter
 			{
 				if (mapping.TryGetValue(rev.User.ToLowerInvariant(), out string author))
 				{
-					rev.OriginalUser = rev.User;
+					rev.OriginalUserId = rev.UserId;
 					rev.User = author;
 				}
 				else
@@ -307,12 +307,12 @@ namespace VssSvnConverter
 		{
 			var sb = new StringBuilder();
 
-			foreach (var g in revs.GroupBy(r => r.OriginalUser))
+			foreach (var g in revs.GroupBy(r => r.OriginalUserId))
 			{
 				if (sb.Length > 0)
 					sb.AppendLine("===");
 
-				sb.AppendLine($"@{g.Key}:");
+				sb.AppendLine($"@{FileRevision.GetUser(g.Key)}:");
 				foreach (var rev in g)
 				{
 					sb.AppendLine($"{rev.At}  {rev.FileSpec}@{rev.VssVersion}");
