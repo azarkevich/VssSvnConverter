@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
-using SourceSafeTypeLib;
+using Microsoft.VisualStudio.SourceSafe.Interop;
 using vsslib;
 using VssSvnConverter.Core;
 

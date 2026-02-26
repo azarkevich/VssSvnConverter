@@ -41,6 +41,10 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.SourceSafe.Interop, Version=5.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>..\packages\Microsoft.VisualStudio.SourceSafe.Interop.5.2.0.0\lib\Microsoft.VisualStudio.SourceSafe.Interop.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="SharpSvn, Version=1.8011.3473.77, Culture=neutral, PublicKeyToken=d729672594885a28, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\SharpSvn.1.8-x86.1.8011.3473.77\lib\net40\SharpSvn.dll</HintPath>
@@ -106,17 +110,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\refresh-small.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <COMReference Include="SourceSafeTypeLib">
-      <Guid>{783CD4E0-9D54-11CF-B8EE-00608CC9A71F}</Guid>
-      <VersionMajor>5</VersionMajor>
-      <VersionMinor>2</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>tlbimp</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </COMReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">

@@ -5,9 +5,9 @@ using System.Linq;
 using System.IO;
 using System.Diagnostics;
 using System.Security.Cryptography;
-using SourceSafeTypeLib;
 using vsslib;
 using System.Text.RegularExpressions;
+using Microsoft.VisualStudio.SourceSafe.Interop;
 using VssSvnConverter.Core;
 
 namespace VssSvnConverter
