@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using SourceSafeTypeLib;
+using Microsoft.VisualStudio.SourceSafe.Interop;
 using vsslib;
 
 namespace VssSvnConverter.Core

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SourceSafeTypeLib;
+using Microsoft.VisualStudio.SourceSafe.Interop;
 using vcslib;
 using VssSvnConverter.Core;
 

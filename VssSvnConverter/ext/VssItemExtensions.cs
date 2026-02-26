@@ -1,5 +1,5 @@
 ﻿using System;
-using SourceSafeTypeLib;
+using Microsoft.VisualStudio.SourceSafe.Interop;
 
 namespace vsslib
 {
