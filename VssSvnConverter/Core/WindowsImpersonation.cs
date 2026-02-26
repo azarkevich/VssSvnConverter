@@ -1,83 +1,90 @@
-﻿using System;
-using System.ComponentModel;
-using System.Net;
-using System.Runtime.InteropServices;
-using System.Security.Permissions;
+﻿using System.Runtime.InteropServices;
 using System.Security.Principal;
-using System.Text.RegularExpressions;
 
-namespace VssSvnConverter.Core
+namespace VssSvnConverter.Core;
+
+public class WindowsImpersonation
 {
-	public class WindowsImpersonation
-	{
-		static readonly Regex Login = new Regex(@"(^(?<domain>[^\\]+)\\(?<login>.+)$)|(^(?<login>[^@]+)@(?<domain>.+)$)|(?<login>.*)", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline);
+	[DllImport("advapi32.dll", SetLastError = true)]
+	private static extern bool LogonUser(
+		string lpszUsername,
+		string lpszDomain,
+		string lpszPassword,
+		int dwLogonType,
+		int dwLogonProvider,
+		out IntPtr phToken);
 
+	[DllImport("kernel32.dll", SetLastError = true)]
+	private static extern bool CloseHandle(IntPtr hHandle);
+
+	public static IDisposable Impersonate(string username, string password, string domain)
+	{
 		const int LOGON32_LOGON_INTERACTIVE = 2;
 		const int LOGON32_PROVIDER_DEFAULT = 0;
 
-		[DllImport("advapi32.dll", SetLastError = true)]
-		static extern int LogonUserA(String user, String domain, String password, int logonType, int logonProvider, ref IntPtr token);
-
-		[DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-		static extern int DuplicateToken(IntPtr token, int impersonationLevel, ref IntPtr newToken);
-
-		[DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-		static extern bool RevertToSelf();
-
-		[DllImport("kernel32.dll", CharSet = CharSet.Auto)]
-		static extern bool CloseHandle(IntPtr handle);
-
-		public static bool SplitLogin(string login, out string domain, out string user)
+		IntPtr token = IntPtr.Zero;
+		try
 		{
-			var m = Login.Match(login);
-			domain = m.Groups["domain"].Value;
-			user = m.Groups["login"].Value;
-			return string.IsNullOrEmpty(domain);
-		}
-
-		public static WindowsImpersonationContext Impersonate(string login, string password)
-		{
-			string domain, user;
-
-			SplitLogin(login, out domain, out user);
-
-			return Impersonate(user, domain, password);
-		}
-
-		[PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-		public static WindowsImpersonationContext Impersonate(string user, string domain, string password)
-		{
-			var token = IntPtr.Zero;
-			var tokenDuplicate = IntPtr.Zero;
-
-			try
+			if (LogonUser(
+				username,
+				domain,
+				password,
+				LOGON32_LOGON_INTERACTIVE,
+				LOGON32_PROVIDER_DEFAULT,
+				out token))
 			{
-				if (RevertToSelf())
-				{
-					if (LogonUserA(user, domain, password, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, ref token) != 0)
-					{
-						if (DuplicateToken(token, 2, ref tokenDuplicate) != 0)
-							return WindowsIdentity.Impersonate(tokenDuplicate);
-					}
-				}
-				var err = Marshal.GetLastWin32Error();
-				throw new Win32Exception(err);
+				// Create WindowsIdentity from the token
+				var identity = new WindowsIdentity(token);
+
+				// Return a custom disposable that handles impersonation
+				return new ImpersonationContext(identity);
 			}
-			finally
+			else
 			{
-				if (token != IntPtr.Zero)
-					CloseHandle(token);
-				if (tokenDuplicate != IntPtr.Zero)
-					CloseHandle(tokenDuplicate);
+				int error = Marshal.GetLastWin32Error();
+				throw new System.ComponentModel.Win32Exception(error, "LogonUser failed");
 			}
 		}
-
-		public static IDisposable Impersonate(NetworkCredential creds)
+		finally
 		{
-			if (string.IsNullOrWhiteSpace(creds.Domain))
-				return Impersonate(creds.UserName, creds.Password);
-
-			return Impersonate(creds.UserName, creds.Domain, creds.Password);
+			if (token != IntPtr.Zero)
+			{
+				CloseHandle(token);
+			}
 		}
+	}
+
+	// Custom implementation of impersonation context
+	private class ImpersonationContext : IDisposable
+	{
+		private WindowsIdentity _identity;
+		private WindowsIdentity? _previousIdentity;
+
+		public ImpersonationContext(WindowsIdentity identity)
+		{
+			_identity = identity;
+			// Store the current identity and set the new one
+			_previousIdentity = WindowsIdentity.GetCurrent();
+			Thread.CurrentPrincipal = new WindowsPrincipal(identity);
+		}
+
+		public void Dispose()
+		{
+			// Revert to previous identity
+			if (_previousIdentity != null)
+			{
+				Thread.CurrentPrincipal = new WindowsPrincipal(_previousIdentity);
+			}
+
+			// Dispose of the identity
+			_identity?.Dispose();
+			_previousIdentity?.Dispose();
+		}
+	}
+
+	// Method to impersonate current user
+	public static IDisposable ImpersonateCurrentUser()
+	{
+		return new ImpersonationContext(WindowsIdentity.GetCurrent());
 	}
 }
