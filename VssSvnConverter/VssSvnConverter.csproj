@@ -1,124 +1,16 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{195306EF-7421-4EE3-A7B2-63A0CBC694B0}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VssSvnConverter</RootNamespace>
-    <AssemblyName>VssSvnConverter</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
-    <FileAlignment>512</FileAlignment>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">.\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.SourceSafe.Interop, Version=5.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>..\packages\Microsoft.VisualStudio.SourceSafe.Interop.5.2.0.0\lib\Microsoft.VisualStudio.SourceSafe.Interop.dll</HintPath>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </Reference>
-    <Reference Include="SharpSvn, Version=1.8011.3473.77, Culture=neutral, PublicKeyToken=d729672594885a28, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\SharpSvn.1.8-x86.1.8011.3473.77\lib\net40\SharpSvn.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <PackageReference Include="Microsoft.VisualStudio.SourceSafe.Interop" Version="5.2.0" />
+    <PackageReference Include="SharpSvn" Version="1.14005.390" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CacheBuilder.cs" />
-    <Compile Include="Core\Commit.cs" />
-    <Compile Include="Core\EnumerableExtensions.cs" />
-    <Compile Include="Core\ExecHelper.cs" />
-    <Compile Include="Core\GitExecHelper.cs" />
-    <Compile Include="Core\TfsDriver.cs" />
-    <Compile Include="Core\Utils.cs" />
-    <Compile Include="ext\FileCache.cs" />
-    <Compile Include="ext\SSExeHelper.cs" />
-    <Compile Include="ext\VssFileCache.cs" />
-    <Compile Include="ext\VssItemExtensions.cs" />
-    <Compile Include="ext\XRefMap.cs" />
-    <Compile Include="Core\FileRevisionLite.cs" />
-    <Compile Include="Core\GitDriver.cs" />
-    <Compile Include="Core\IDestinationDriver.cs" />
-    <Compile Include="GitFastImportFrontend.cs" />
-    <Compile Include="LinksBuilder.cs" />
-    <Compile Include="Core\Options.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="ScriptsBuilder.cs" />
-    <Compile Include="SimpleUI.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="SimpleUI.Designer.cs">
-      <DependentUpon>SimpleUI.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Core\SvnDriver.cs" />
-    <Compile Include="VssVersionsBuilder.cs" />
-    <Compile Include="WcBuilder.cs" />
-    <Compile Include="CommitsBuilder.cs" />
-    <Compile Include="Importer.cs" />
-    <Compile Include="ImportListBuilder.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Core\WindowsImpersonation.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="VssSvnConverter.conf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\refresh-small.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="SimpleUI.resx">
-      <DependentUpon>SimpleUI.cs</DependentUpon>
-    </EmbeddedResource>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>
