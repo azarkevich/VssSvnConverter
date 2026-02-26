@@ -33,7 +33,7 @@ namespace VssSvnConverter
 					{
 						var arr = line.Substring(1).Split(':');
 
-						Debug.Assert(arr.Length == 4);
+						Debug.Assert(arr.Length == 3);
 						Debug.Assert(commit != null);
 
 						commit.AddRevision(new FileRevisionLite {
