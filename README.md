@@ -77,4 +77,3 @@ Troubleshooting
 ---------
 Martin provide some hints for solve problems encountered during conversion.
 https://github.com/azarkevich/VssSvnConverter/issues/1
-https://github.com/azarkevich/VssSvnConverter/issues/1

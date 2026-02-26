@@ -1,10 +1,5 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Net;
+﻿using System.IO.Compression;
 using vcslib;
-using System;
 using System.Diagnostics;
 using VssSvnConverter.Core;
 
@@ -53,7 +48,7 @@ namespace VssSvnConverter
 						var password = opts.Config["links-db-password"].FirstOrDefault();
 						if (user != null && password != null)
 						{
-							disp = WindowsImpersonation.Impersonate(new NetworkCredential(user, password));
+							disp = WindowsImpersonation.Impersonate(user, password, null);
 						}
 
 						// get max file
