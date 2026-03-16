@@ -13,13 +13,66 @@ namespace VssSvnConverter
 {
 	class FileRevision
 	{
-		public string FileSpec;
-		public string User;
-		public string OriginalUser;
+		static readonly List<string> Files = new List<string>();
+		static readonly List<string> Users = new List<string>();
+
+		static readonly Dictionary<string, int> FileIds = new Dictionary<string, int>();
+		static readonly Dictionary<string, int> UserIds = new Dictionary<string, int>();
+
+		public int FileId;
+		public int UserId;
+		public int OriginalUserId;
+
+		public string FileSpec
+		{
+			get => Files[FileId];
+			set => FileId = GetFileId(value);
+		}
+
+		public string User
+		{
+			get => Users[UserId];
+			set => UserId = GetUserId(value);
+		}
+
+		public string OriginalUser
+		{
+			get => Users[OriginalUserId];
+			set => OriginalUserId = GetUserId(value);
+		}
+
 		public DateTime At;
 		public int VssVersion;
 		public string Comment;
 		public string Physical;
+
+		public static int FileCount => Files.Count;
+		public static int UserCount => Users.Count;
+
+		public static string GetFile(int fileId) => Files[fileId];
+		public static string GetUser(int userId) => Users[userId];
+		public static int GetFileId(string file) => GetId(file, Files, FileIds);
+		public static int GetUserId(string user) => GetId(user, Users, UserIds);
+
+		public static int GetId(string value, List<string> list, Dictionary<string, int> dict)
+		{
+			var pairs = dict.Where(x => x.Key == value);
+			if (pairs.Count() > 0)
+				return pairs.First().Value;
+
+			var result = list.Count;
+			list.Add(value);
+			dict[value] = result;
+			return result;
+		}
+
+		public static void Clear()
+		{
+			Files.Clear();
+			Users.Clear();
+			FileIds.Clear();
+			UserIds.Clear();
+		}
 	}
 
 	class VssVersionsBuilder
